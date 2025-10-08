@@ -1,0 +1,8 @@
+<ContentPage x:Class="RHF_Foundation.Views.ActivitiesPage"
+xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    <VerticalStackLayout Padding="16" Spacing="8">
+        <Label Text="Activities" FontSize="24" FontAttributes="Bold"/>
+        <Label Text="Archery, Canoeing, Crafts, Hikes…"/>
+    </VerticalStackLayout>
+</ContentPage>

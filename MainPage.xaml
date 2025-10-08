@@ -1,0 +1,258 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+x:Class="RHF_Foundation.Views.MainPage"
+xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+xmlns:vm="clr-namespace:RHF_Foundation.ViewModels">
+<!--BackgroundColor="{StaticResource PageBackground}"> -->
+
+    <ContentPage.BindingContext>
+        <vm:MainViewModel/>
+    </ContentPage.BindingContext>
+
+
+    <ContentPage.Resources>
+        <!-- Card look & feel -->
+        <Style x:Key="CardBorderStyle" TargetType="Border">
+            <Setter Property="StrokeShape">
+                <Setter.Value>
+                    <RoundRectangle CornerRadius="16" />
+                </Setter.Value>
+            </Setter>
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="Stroke" Value="Grey" />
+            <Setter Property="BackgroundColor" Value="White" />
+            <Setter Property="Shadow">
+                <Setter.Value>
+                    <Shadow Brush="#33000000" Radius="8" />
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Padding" Value="14" />
+            <Setter Property="Margin" Value="10,6" />
+        </Style>
+
+        <!-- Text styles -->
+        <Style x:Key="MonthBadgeStyle" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="{StaticResource RicksOrange}" />
+            <Setter Property="StrokeShape">
+                <Setter.Value>
+                    <RoundRectangle CornerRadius="8"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="HorizontalOptions" Value="Start" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+
+        <Style x:Key="MonthTextStyle" TargetType="Label">
+            <Setter Property="TextColor" Value="White" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+
+        <Style x:Key="EventTitleStyle" TargetType="Label">
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="TextColor" Value="Black" />
+            <Setter Property="LineBreakMode" Value="WordWrap" />
+        </Style>
+
+        <Style x:Key="MetaStyle" TargetType="Label">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextColor" Value="Grey" />
+        </Style>
+
+        <Style x:Key="LinkStyle" TargetType="Label">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextDecorations" Value="Underline" />
+            <Setter Property="TextColor" Value="Black" />
+        </Style>
+    </ContentPage.Resources>
+
+
+
+
+
+<ScrollView>
+    <VerticalStackLayout Spacing="16" Padding="16,24">
+
+<!--Top Menu-->
+            <StackLayout x:Name="MainTopMenu">
+                <StackLayout x:Name="MainViewTopMenu" Orientation="Horizontal" VerticalOptions="Start"  Padding="0,0,0,-15">
+            
+                        <StackLayout HorizontalOptions="StartAndExpand" Padding="5,0" Orientation="Horizontal">
+                                <ImageButton Source="plusicon.png" WidthRequest="{OnPlatform iOS=30, Android=40}" HorizontalOptions="Center" VerticalOptions="CenterAndExpand" Command="{Binding CheckInCommand}" Padding="5,0"/>
+                                <Label Text="Sign In" FontSize="20" VerticalOptions="Center" HorizontalOptions="Center" TextColor="Blue">
+                                        <Label.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding CheckInCommand}" />
+                                        </Label.GestureRecognizers>
+                                </Label>
+                        </StackLayout>
+
+                        <StackLayout Orientation="Horizontal" HorizontalOptions="EndAndExpand" Padding="5,0" Margin="0,0,5,0" VerticalOptions="Center">
+                            <Label Text="User Name" FontSize="20" VerticalOptions="Center" HorizontalOptions="Center" TextColor="Green" Padding="5,0">
+                                        <Label.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding GoScheduleCommand}" />
+                                        </Label.GestureRecognizers>
+                            </Label>
+                            <Frame CornerRadius="15" HeightRequest="30" WidthRequest="30" HorizontalOptions="Center" Padding="0" HasShadow="True"
+                                   IsClippedToBounds="True" BackgroundColor="Yellow">
+                                <ImageButton Source="usericon.png"  HorizontalOptions="CenterAndExpand" VerticalOptions="CenterAndExpand" Command="{Binding GoScheduleCommand}" Aspect="Fill" />
+                            </Frame>
+                        </StackLayout>
+                </StackLayout>
+            </StackLayout>
+
+    <Image Source="rhflogo.png" HeightRequest="130" BackgroundColor="Red" HorizontalOptions="Fill" Aspect="AspectFill"  />
+
+<!-- Hero/Header
+    <Grid Padding="5" BackgroundColor="{StaticResource RicksOrange}" HeightRequest="140">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Label Text="RHF_Foundation" TextColor="White" FontSize="28" FontAttributes="Bold"/>
+        <HorizontalStackLayout Grid.Row="1" Spacing="6" VerticalOptions="End">
+            <Label Text="Welcome, " TextColor="White"/>
+            <Label Text="{Binding CamperName}" TextColor="White"/>
+            <Label Text="•" TextColor="White"/>
+            <Label Text="{Binding Today, StringFormat='{}{0:ddd, MMM d}'}" TextColor="White"/>
+        </HorizontalStackLayout>
+    </Grid>
+    -->
+
+        <Label Style="{StaticResource H2}" Text="Weather"/>
+
+        <Label Style="{StaticResource H2}" Text="Reminders"/>
+
+
+<!-- Upcoming events -->
+        <Label Style="{StaticResource H2}" Text="Upcoming Events"/>
+
+
+<Grid Padding="2">
+        <CollectionView
+            ItemsSource="{Binding Events}"
+            SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <!-- 3 rows: (1) Month + Title, (2) Date/Time, (3) Link -->
+                        <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*">
+                            <!-- Row 0: Month badge + Event name -->
+                            <Grid Grid.Row="0" ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                <Border Style="{StaticResource MonthBadgeStyle}">
+                                    <Label Text="{Binding MonthAbbrev}" Style="{StaticResource MonthTextStyle}" />
+                                </Border>
+
+                                <Label Grid.Column="1"
+                                       Text="{Binding EventName}"
+                                       Style="{StaticResource EventTitleStyle}" />
+                            </Grid>
+
+                            <!-- Row 1: Date and Time -->
+                            <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto" ColumnSpacing="12" Margin="0,6,0,0">
+                                <Label Grid.Column="0"
+                                       Text="{Binding EventDate}" 
+                                       Style="{StaticResource MetaStyle}" />
+                                <Label Grid.Column="1"
+                                       Text="{Binding TimeRange}" 
+                                       Style="{StaticResource MetaStyle}" />
+                            </Grid>
+
+                            <!-- Row 2: Clickable link -->
+                            <Label Grid.Row="2"
+                                   Margin="0,8,0,0"
+                                   Text="{Binding LinkText}"
+                                   Style="{StaticResource LinkStyle}">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.OpenLinkCommand}"
+                                        CommandParameter="{Binding LinkUrl}" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+
+
+
+
+
+    <!-- Quick Actions -->
+    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+        <Border Style="{StaticResource Card}" Grid.Column="0" Grid.Row="0">
+            <VerticalStackLayout>
+            <Label Style="{StaticResource H2}" Text="Check In"/>
+            <Button Text="Scan QR" Command="{Binding CheckInCommand}"/>
+            </VerticalStackLayout>
+            </Border>
+            <Border Style="{StaticResource Card}" Grid.Column="1" Grid.Row="0">
+            <VerticalStackLayout>
+            <Label Style="{StaticResource H2}" Text="Map"/>
+            <Button Text="View Map" Command="{Binding GoMapCommand}"/>
+            </VerticalStackLayout>
+        </Border>
+            <Border Style="{StaticResource Card}" Grid.Column="0" Grid.Row="1">
+            <VerticalStackLayout>
+            <Label Style="{StaticResource H2}" Text="Meals"/>
+            <Button Text="This Week" Command="{Binding GoMealsCommand}"/>
+            </VerticalStackLayout>
+            </Border>
+            <Border Style="{StaticResource Card}" Grid.Column="1" Grid.Row="1">
+            <VerticalStackLayout>
+            <Label Style="{StaticResource H2}" Text="Activities"/>
+            <Button Text="Browse" Command="{Binding GoActivitiesCommand}"/>
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+
+
+
+<!-- Today’s Schedule -->
+        <Border Style="{StaticResource Card}">
+        <VerticalStackLayout Spacing="6">
+        <Label Style="{StaticResource H2}" Text="Today's Schedule"/>
+        <CollectionView ItemsSource="{Binding TodayEvents}" SelectionMode="None">
+        <CollectionView.ItemTemplate>
+        <DataTemplate>
+        <Grid ColumnDefinitions="Auto,*" Padding="0,8">
+        <Label Text="{Binding TimeRange}" FontAttributes="Bold"/>
+        <VerticalStackLayout Grid.Column="1">
+        <Label Text="{Binding Title}"/>
+        <Label Text="{Binding Location}" Style="{StaticResource Subtle}"/>
+        </VerticalStackLayout>
+        </Grid>
+        </DataTemplate>
+        </CollectionView.ItemTemplate>
+        </CollectionView>
+        <Button Text="Full Schedule" Command="{Binding GoScheduleCommand}"/>
+        </VerticalStackLayout>
+        </Border>
+
+
+<!-- Announcements -->
+<Border Style="{StaticResource Card}">
+<VerticalStackLayout Spacing="6">
+<Label Style="{StaticResource H2}" Text="Announcements"/>
+<CollectionView ItemsSource="{Binding Announcements}" SelectionMode="None">
+<CollectionView.ItemTemplate>
+<DataTemplate>
+<VerticalStackLayout Padding="0,6">
+<Label Text="{Binding Title}" FontAttributes="Bold"/>
+<Label Text="{Binding Body}"/>
+</VerticalStackLayout>
+</DataTemplate>
+</CollectionView.ItemTemplate>
+</CollectionView>
+<Button Text="All Announcements" Command="{Binding GoAnnouncementsCommand}"/>
+</VerticalStackLayout>
+</Border>
+
+
+</VerticalStackLayout>
+</ScrollView>
+</ContentPage>

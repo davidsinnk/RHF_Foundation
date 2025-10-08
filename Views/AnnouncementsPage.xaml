@@ -1,0 +1,10 @@
+<!-- AnnouncementsPage.xaml -->
+<!-- <?xml version="1.0" encoding="utf-8" ?>. -->
+<ContentPage x:Class="RHF_Foundation.Views.AnnouncementsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+        <VerticalStackLayout Padding="16" Spacing="8">
+            <Label Text="Announcements" FontSize="24" FontAttributes="Bold"/>
+            <Label Text="All-camp updates will appear here."/>
+        </VerticalStackLayout>
+</ContentPage>

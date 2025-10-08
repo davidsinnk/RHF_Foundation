@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<Application x:Class="RHF_Foundation.App"
+xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+<Application.Resources>
+<ResourceDictionary>
+<!-- Brand Colors -->
+<Color x:Key="CampNavy">#0A2647</Color>
+<Color x:Key="CampTeal">#2C7DA0</Color>
+<Color x:Key="CampGreen">#2A9D8F</Color>
+<Color x:Key="CampSand">#F4EDE4</Color>
+<Color x:Key="CampCharcoal">#222831</Color>
+<Color x:Key="RicksOrange">#E34E26</Color>
+
+
+<!-- Semantic Brushes -->
+<SolidColorBrush x:Key="CardBackground" Color="White"/>
+<SolidColorBrush x:Key="PageBackground" Color="#F7F8FB"/>
+
+
+<!-- Headline & Body -->
+<Style TargetType="Label" x:Key="H1">
+<Setter Property="FontSize" Value="28"/>
+<Setter Property="FontAttributes" Value="Bold"/>
+<Setter Property="TextColor" Value="{StaticResource CampCharcoal}"/>
+</Style>
+<Style TargetType="Label" x:Key="H2">
+<Setter Property="FontSize" Value="20"/>
+<Setter Property="FontAttributes" Value="Bold"/>
+<Setter Property="TextColor" Value="{StaticResource CampCharcoal}"/>
+</Style>
+<Style TargetType="Label" x:Key="Subtle">
+<Setter Property="FontSize" Value="12"/>
+<Setter Property="TextColor" Value="#6B7280"/>
+</Style>
+
+
+<!-- Card Border -->
+<Style TargetType="Border" x:Key="Card">
+<Setter Property="Stroke" Value="#E5E7EB"/>
+<Setter Property="StrokeShape">
+<Setter.Value>
+<RoundRectangle CornerRadius="16"/>
+</Setter.Value>
+</Setter>
+<Setter Property="Background" Value="{StaticResource CardBackground}"/>
+<Setter Property="Padding" Value="16"/>
+<Setter Property="Shadow">
+<Setter.Value>
+<Shadow Brush="#33000000" Radius="8"/>
+</Setter.Value>
+</Setter>
+</Style>
+</ResourceDictionary>
+</Application.Resources>
+</Application>

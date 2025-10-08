@@ -1,0 +1,141 @@
+using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using RHF_Foundation.Views.Popups;
+using CommunityToolkit.Maui.Views;
+using CommunityToolkit.Maui.Extensions;
+using RHF_Foundation.Models;
+using System.Windows.Input;
+
+
+namespace RHF_Foundation.ViewModels;
+
+
+public partial class MainViewModel : ObservableObject
+{
+
+    [ObservableProperty]
+    public string camperName = "RHF_Foundation Family";
+
+
+    [ObservableProperty]
+    private DateTime today = DateTime.Today;
+
+
+    public ObservableCollection<EventItem> Events { get; } = new();
+
+
+
+    public ObservableCollection<CampEvent> TodayEvents { get; } = new();
+    public ObservableCollection<Announcement> Announcements { get; } = new();
+
+
+    public IAsyncRelayCommand GoScheduleCommand { get; }
+    public IAsyncRelayCommand GoMapCommand { get; }
+    public IAsyncRelayCommand GoMealsCommand { get; }
+    public IAsyncRelayCommand GoActivitiesCommand { get; }
+    public IAsyncRelayCommand GoAnnouncementsCommand { get; }
+
+    public IAsyncRelayCommand CheckInCommand { get; }
+
+
+    public MainViewModel()
+    {
+        GoScheduleCommand = new AsyncRelayCommand(async () => await Shell.Current.GoToAsync("//schedule"));
+        GoMapCommand = new AsyncRelayCommand(async () => await Shell.Current.GoToAsync("//map"));
+        GoMealsCommand = new AsyncRelayCommand(async () => await Shell.Current.GoToAsync("meals"));
+        GoActivitiesCommand = new AsyncRelayCommand(async () => await Shell.Current.GoToAsync("activities"));
+        GoAnnouncementsCommand = new AsyncRelayCommand(async () => await Shell.Current.GoToAsync("announcements"));
+        CheckInCommand = new AsyncRelayCommand(OpenCheckInPopupAsync);
+
+
+        // Sample data
+        TodayEvents.Add(new CampEvent("Breakfast", "Dining Hall", new TimeSpan(8, 0, 0), new TimeSpan(9, 0, 0)));
+        TodayEvents.Add(new CampEvent("Lake Time", "Boathouse", new TimeSpan(10, 0, 0), new TimeSpan(12, 0, 0)));
+        TodayEvents.Add(new CampEvent("Arts & Crafts", "Makers Cabin", new TimeSpan(14, 0, 0), new TimeSpan(15, 30, 0)));
+
+
+        Announcements.Add(new Announcement("Welcome Night!", "Campfire starts at 7:30 PM by the amphitheater."));
+        Announcements.Add(new Announcement("Cabin Checks", "Please complete safety checks by noon."));
+
+
+        CreateEventDataForDemo();
+    }
+
+    private async Task OpenCheckInPopupAsync()
+    {
+
+        var popup = new CheckInPopup();
+        await Shell.Current.CurrentPage.ShowPopupAsync(popup);
+
+    }
+
+    private async Task ScanQrAsync()
+    {
+        // TODO: Integrate ZXing.Net.MAUI or CameraView for scanning
+        await Application.Current.MainPage.DisplayAlert("Check-In", "QR scanner coming soon.", "OK");
+    }
+
+    public ICommand OpenLinkCommand => new Command<string>(async (url) =>
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return;
+        try
+        {
+            await Launcher.OpenAsync(new Uri(url));
+        }
+        catch
+        {
+            // Optional: handle error or show alert
+        }
+    });
+
+
+
+    private void CreateEventDataForDemo()
+    {
+        Events.Add(new EventItem
+        {
+            MonthAbbrev = "OCT",
+            EventName = "Spooky Movie Night",
+            EventDate = "Oct 08, 2025",
+            TimeRange = "05:00 PM – 9:00 PM",
+            LinkText = "View event details",
+            LinkUrl = "https://rhfnow.org/event/outdoor-movie-night/"
+        });
+
+        Events.Add(new EventItem
+        {
+            MonthAbbrev = "NOV",
+            EventName = "Falling Into Christmas",
+            EventDate = "Nov 15, 2025",
+            TimeRange = "10:00 AM",
+            LinkText = "View event details",
+            LinkUrl = "https://rhfnow.org/event/november-fall-festival/"
+        });
+
+        Events.Add(new EventItem
+        {
+            MonthAbbrev = "DEC",
+            EventName = "B1G Championship Night",
+            EventDate = "DEC 06, 2025",
+            TimeRange = "6:00 PM – 10:00 PM",
+            LinkText = "View event details",
+            LinkUrl = "https://example.com/event/789"
+        });
+
+
+    }
+}
+
+
+public record CampEvent(string Title, string Location, TimeSpan Start, TimeSpan End)
+{
+public string TimeRange => $"{Start:h\\:mm}–{End:h\\:mm}";
+}
+
+
+public record Announcement(string Title, string Body);
+
+
+

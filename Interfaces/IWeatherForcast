@@ -1,0 +1,19 @@
+using System.Threading.Tasks;
+using RHF_Foundation.Models;
+
+namespace RHF_Foundation.Interfaces
+{
+    /// <summary>
+    /// Defines methods for retrieving and parsing weather forecast data.
+    /// </summary>
+    public interface IWeatherService
+    {
+        /// <summary>
+        /// Retrieves the raw JSON string from a weather API endpoint.
+        /// </summary>
+        /// <param name="apiUrl">The weather API URL (e.g. NOAA gridpoint endpoint).</param>
+        /// <returns>JSON string of the forecast, or null if retrieval fails.</returns>
+        Task<string?> GetForecastJsonAsync(string apiUrl);
+
+    }
+}
