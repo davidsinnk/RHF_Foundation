@@ -10,8 +10,8 @@
 
     <!-- Fullscreen overlay -->
     <Grid
-        BackgroundColor="#66000000"   
-        HorizontalOptions="Fill" 
+        BackgroundColor="#66000000"
+        HorizontalOptions ="Fill"
         VerticalOptions="Fill"
         >
 

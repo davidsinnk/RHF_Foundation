@@ -9,9 +9,12 @@ Shell.BackgroundColor="{StaticResource RicksOrange}"
 Shell.ForegroundColor="White"
 Shell.TabBarTitleColor="White"
 Shell.TabBarUnselectedColor="#D0D4DA"
-tabbar-background-color="{StaticResource RicksOrange}">
+>
+<!--
 
+Tabbar-background-color="{StaticResource RicksOrange}">
 
+-->
 
 <!-- Landing / Home -->
 <TabBar>

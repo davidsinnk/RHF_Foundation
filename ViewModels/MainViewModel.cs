@@ -22,6 +22,13 @@ public partial class MainViewModel : ObservableObject
     private DateTime today = DateTime.Today;
 
 
+    [ObservableProperty]
+    private String temperature= "80 °F ";
+    [ObservableProperty]
+    private String weatherCondition = "Sunny";
+    [ObservableProperty]
+    private String wind = "7 mph NW";
+
     public ObservableCollection<EventItem> Events { get; } = new();
 
 

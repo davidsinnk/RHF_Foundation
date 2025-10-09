@@ -74,7 +74,7 @@ xmlns:vm="clr-namespace:RHF_Foundation.ViewModels">
 
 
 <ScrollView>
-    <VerticalStackLayout Spacing="16" Padding="16,24">
+<VerticalStackLayout Spacing="16" Padding="16,24">
 
 <!--Top Menu-->
             <StackLayout x:Name="MainTopMenu">
@@ -120,9 +120,15 @@ xmlns:vm="clr-namespace:RHF_Foundation.ViewModels">
         </HorizontalStackLayout>
     </Grid>
     -->
-
-        <Label Style="{StaticResource H2}" Text="Weather"/>
-
+<!-- Weather & Reminders -->
+    <StackLayout Orientation="Horizontal" Spacing="20" HorizontalOptions="StartAndExpand">
+        <Label Style="{StaticResource H2}" Text="Weather" HorizontalTextAlignment="Start"/>
+        <StackLayout Orientation="Horizontal" VerticalOptions="Center">
+            <Label Text="{Binding Temperature}" FontSize="16"  HorizontalOptions="Start"/>
+            <Label Text="{Binding WeatherCondition}" FontSize="16" HorizontalOptions="Center"/>
+            <Label Text="{Binding Wind}" FontSize="16" HorizontalOptions="End"/>
+        </StackLayout>
+    </StackLayout>
         <Label Style="{StaticResource H2}" Text="Reminders"/>
 
 
@@ -235,22 +241,22 @@ xmlns:vm="clr-namespace:RHF_Foundation.ViewModels">
 
 
 <!-- Announcements -->
-<Border Style="{StaticResource Card}">
-<VerticalStackLayout Spacing="6">
-<Label Style="{StaticResource H2}" Text="Announcements"/>
-<CollectionView ItemsSource="{Binding Announcements}" SelectionMode="None">
-<CollectionView.ItemTemplate>
-<DataTemplate>
-<VerticalStackLayout Padding="0,6">
-<Label Text="{Binding Title}" FontAttributes="Bold"/>
-<Label Text="{Binding Body}"/>
-</VerticalStackLayout>
-</DataTemplate>
-</CollectionView.ItemTemplate>
-</CollectionView>
-<Button Text="All Announcements" Command="{Binding GoAnnouncementsCommand}"/>
-</VerticalStackLayout>
-</Border>
+        <Border Style="{StaticResource Card}">
+        <VerticalStackLayout Spacing="6">
+        <Label Style="{StaticResource H2}" Text="Announcements"/>
+        <CollectionView ItemsSource="{Binding Announcements}" SelectionMode="None">
+        <CollectionView.ItemTemplate>
+        <DataTemplate>
+        <VerticalStackLayout Padding="0,6">
+        <Label Text="{Binding Title}" FontAttributes="Bold"/>
+        <Label Text="{Binding Body}"/>
+        </VerticalStackLayout>
+        </DataTemplate>
+        </CollectionView.ItemTemplate>
+        </CollectionView>
+        <Button Text="All Announcements" Command="{Binding GoAnnouncementsCommand}"/>
+        </VerticalStackLayout>
+        </Border>
 
 
 </VerticalStackLayout>
