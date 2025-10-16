@@ -316,6 +316,9 @@
 /Users/davidsinnk/Projects/RHF_Foundation/bin/Debug/net9.0-ios/iossimulator-arm64/Microsoft.VisualStudio.DesignTools.MobileTapContracts.dll
 /Users/davidsinnk/Projects/RHF_Foundation/bin/Debug/net9.0-ios/iossimulator-arm64/Microsoft.VisualStudio.DesignTools.TapContract.dll
 /Users/davidsinnk/Projects/RHF_Foundation/bin/Debug/net9.0-ios/iossimulator-arm64/Microsoft.VisualStudio.DesignTools.XamlTapContract.dll
+/Users/davidsinnk/Projects/RHF_Foundation/obj/Debug/net9.0-ios/iossimulator-arm64/resizetizer/sp/splash_47579A3F580EB9FBE720C910E45F8B0B6D1AEB2314E731F9E4A1E5EFCBCFB7D9.png
+/Users/davidsinnk/Projects/RHF_Foundation/obj/Debug/net9.0-ios/iossimulator-arm64/resizetizer/sp/splash_47579A3F580EB9FBE720C910E45F8B0B6D1AEB2314E731F9E4A1E5EFCBCFB7D9@2x.png
+/Users/davidsinnk/Projects/RHF_Foundation/obj/Debug/net9.0-ios/iossimulator-arm64/resizetizer/sp/splash_47579A3F580EB9FBE720C910E45F8B0B6D1AEB2314E731F9E4A1E5EFCBCFB7D9@3x.png
 /Users/davidsinnk/Projects/RHF_Foundation/obj/Debug/net9.0-ios/iossimulator-arm64/resourcestamps/CommunityToolkit.Maui.Core.stamp
 /Users/davidsinnk/Projects/RHF_Foundation/obj/Debug/net9.0-ios/iossimulator-arm64/resourcestamps/CommunityToolkit.Maui.stamp
 /Users/davidsinnk/Projects/RHF_Foundation/obj/Debug/net9.0-ios/iossimulator-arm64/resourcestamps/CommunityToolkit.Mvvm.stamp

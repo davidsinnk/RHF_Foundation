@@ -2,6 +2,12 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RHF_Foundation.Views.Popups;
+
+using RHF_Foundation.Views;
+using RHF_Foundation.Services.Interfaces;
+using RHF_Foundation.Services;
+
+
 using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Maui.Extensions;
 using RHF_Foundation.Models;
@@ -73,6 +79,7 @@ public partial class MainViewModel : ObservableObject
     {
 
         var popup = new CheckInPopup();
+        //var popup = new CheckInPage(new CheckInViewModel(new Services.AlertService(), new Services.NavigationService()));
         await Shell.Current.CurrentPage.ShowPopupAsync(popup);
 
     }

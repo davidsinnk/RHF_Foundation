@@ -65,6 +65,12 @@ build_metadata.AdditionalFiles.ManifestResourceName = RHF_Foundation.Views.Annou
 build_metadata.AdditionalFiles.TargetPath = Views/AnnouncementsPage.xaml
 build_metadata.AdditionalFiles.RelativePath = Views/AnnouncementsPage.xaml
 
+[/Users/davidsinnk/Projects/RHF_Foundation/Views/CheckInPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = RHF_Foundation.Views.CheckInPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views/CheckInPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views/CheckInPage.xaml
+
 [/Users/davidsinnk/Projects/RHF_Foundation/Views/MapPage.xaml]
 build_metadata.AdditionalFiles.GenKind = Xaml
 build_metadata.AdditionalFiles.ManifestResourceName = RHF_Foundation.Views.MapPage.xaml
