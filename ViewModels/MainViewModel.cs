@@ -2,16 +2,20 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RHF_Foundation.Views.Popups;
+using CommunityToolkit.Mvvm.Messaging;
 
 using RHF_Foundation.Views;
 using RHF_Foundation.Services.Interfaces;
 using RHF_Foundation.Services;
 
 
+
+
 using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Maui.Extensions;
 using RHF_Foundation.Models;
 using System.Windows.Input;
+using RHF_Foundation.Messaging;
 
 
 namespace RHF_Foundation.ViewModels;
@@ -20,13 +24,12 @@ namespace RHF_Foundation.ViewModels;
 public partial class MainViewModel : ObservableObject
 {
 
+//Observable properties used for the View
     [ObservableProperty]
     public string camperName = "RHF_Foundation Family";
 
-
     [ObservableProperty]
     private DateTime today = DateTime.Today;
-
 
     [ObservableProperty]
     private String temperature= "80 °F ";
@@ -34,26 +37,46 @@ public partial class MainViewModel : ObservableObject
     private String weatherCondition = "Sunny";
     [ObservableProperty]
     private String wind = "7 mph NW";
-
     public ObservableCollection<EventItem> Events { get; } = new();
-
-
-
     public ObservableCollection<CampEvent> TodayEvents { get; } = new();
     public ObservableCollection<Announcement> Announcements { get; } = new();
 
 
+// Used for Testing Geofencing
+    [ObservableProperty]
+    private string statusText = "Roaming";
+
+        // TODO: change to your target coordinates
+    private const double TargetLat = 35.02637282158545;
+    private const double TargetLon = -78.9730348411858;
+    private const double RadiusMeters = 300;
+
+
+//Buttons Commands
     public IAsyncRelayCommand GoScheduleCommand { get; }
     public IAsyncRelayCommand GoMapCommand { get; }
     public IAsyncRelayCommand GoMealsCommand { get; }
     public IAsyncRelayCommand GoActivitiesCommand { get; }
     public IAsyncRelayCommand GoAnnouncementsCommand { get; }
-
     public IAsyncRelayCommand CheckInCommand { get; }
 
 
-    public MainViewModel()
+    //Navigation, Notification, Geofence services
+    private readonly IGeofenceService _geofence;
+    private readonly INotificationService _notify;
+    private readonly INavigationService _nav;
+    private string? _lastArrivalPlaceId;
+    private DateTime _lastArrivalTimeUtc;
+    private bool _isNavigating;
+
+
+    public MainViewModel(IGeofenceService geofence, INotificationService notify, INavigationService nav)
     {
+        _geofence = geofence;
+        _notify = notify;
+        _nav = nav;
+
+        
         GoScheduleCommand = new AsyncRelayCommand(async () => await Shell.Current.GoToAsync("//schedule"));
         GoMapCommand = new AsyncRelayCommand(async () => await Shell.Current.GoToAsync("//map"));
         GoMealsCommand = new AsyncRelayCommand(async () => await Shell.Current.GoToAsync("meals"));
@@ -73,6 +96,12 @@ public partial class MainViewModel : ObservableObject
 
 
         CreateEventDataForDemo();
+
+        StartGeofenceMonitoring();
+
+
+        StartGeofenceAsync();
+
     }
 
     private async Task OpenCheckInPopupAsync()
@@ -140,6 +169,53 @@ public partial class MainViewModel : ObservableObject
 
 
     }
+
+    void StartGeofenceMonitoring()
+    {
+        // Implementation for starting geofence monitoring
+        // Listen for platform geofence arrival events (from receiver/delegate)
+        WeakReferenceMessenger.Default.Register<ArrivedMessage>(this, async (r, m) =>
+        {
+            var now = DateTime.UtcNow;
+            if (_isNavigating || (_lastArrivalPlaceId == m.Value && (now - _lastArrivalTimeUtc) < TimeSpan.FromSeconds(5)))
+                return;
+
+            _isNavigating = true;
+            _lastArrivalPlaceId = m.Value;
+            _lastArrivalTimeUtc = now;
+
+            try
+            {
+                StatusText = "You are at Rick's Plase";
+                await _nav.GoToAsync("checkin", new Dictionary<string, object> { ["placeId"] = m.Value });
+            }
+            finally
+            {
+                await Task.Delay(500);
+                _isNavigating = false;
+            }
+
+
+        });
+
+        StatusText = $"Location: {TargetLat}, {TargetLon}";
+    }
+
+    [RelayCommand]
+    private async Task StartGeofenceAsync()
+    {
+        var perm = await _notify.RequestPermissionAsync(); // notifications (Android 13+)
+        var ok = await _geofence.StartMonitoringAsync(TargetLat, TargetLon, RadiusMeters);
+        StatusText = ok ? "Geofence active." : "Could not start geofence (permissions?).";
+
+
+        if (ok)
+        {
+            // Optional: immediate hint
+            await _notify.ShowAsync("Monitoring", "We'll notify you when you're within 300m.");
+        }
+    }
+
 }
 
 
@@ -147,7 +223,6 @@ public record CampEvent(string Title, string Location, TimeSpan Start, TimeSpan 
 {
 public string TimeRange => $"{Start:h\\:mm}–{End:h\\:mm}";
 }
-
 
 public record Announcement(string Title, string Body);
 

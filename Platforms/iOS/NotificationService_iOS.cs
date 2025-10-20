@@ -4,7 +4,7 @@ using RHF_Foundation.Services;
 using RHF_Foundation.Services.Interfaces;
 
 
-namespace LocationTest.Platforms.iOS;
+namespace RHF_Foundation.Platforms.iOS;
 
 
 public class NotificationService_iOS : INotificationService

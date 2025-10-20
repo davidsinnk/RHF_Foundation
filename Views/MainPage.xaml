@@ -6,9 +6,7 @@ xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
 xmlns:vm="clr-namespace:RHF_Foundation.ViewModels">
 <!--BackgroundColor="{StaticResource PageBackground}"> -->
 
-    <ContentPage.BindingContext>
-        <vm:MainViewModel/>
-    </ContentPage.BindingContext>
+
 
 
     <ContentPage.Resources>
@@ -120,6 +118,9 @@ xmlns:vm="clr-namespace:RHF_Foundation.ViewModels">
         </HorizontalStackLayout>
     </Grid>
     -->
+
+    <Label Text="{Binding StatusText}" />
+    <Button Text="Start Geofence" Command="{Binding StartGeofenceCommand}" />
 <!-- Weather & Reminders -->
     <StackLayout Orientation="Horizontal" Spacing="20" HorizontalOptions="StartAndExpand">
         <Label Style="{StaticResource H2}" Text="Weather" HorizontalTextAlignment="Start"/>
@@ -186,9 +187,10 @@ xmlns:vm="clr-namespace:RHF_Foundation.ViewModels">
 
 
 
+<!-- Extra Code that needs to go... just not yet Divider 
 
 
-    <!-- Quick Actions -->
+
     <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
         <Border Style="{StaticResource Card}" Grid.Column="0" Grid.Row="0">
             <VerticalStackLayout>
@@ -218,7 +220,7 @@ xmlns:vm="clr-namespace:RHF_Foundation.ViewModels">
 
 
 
-<!-- Today’s Schedule -->
+
         <Border Style="{StaticResource Card}">
         <VerticalStackLayout Spacing="6">
         <Label Style="{StaticResource H2}" Text="Today's Schedule"/>
@@ -240,7 +242,7 @@ xmlns:vm="clr-namespace:RHF_Foundation.ViewModels">
         </Border>
 
 
-<!-- Announcements -->
+
         <Border Style="{StaticResource Card}">
         <VerticalStackLayout Spacing="6">
         <Label Style="{StaticResource H2}" Text="Announcements"/>
@@ -257,8 +259,8 @@ xmlns:vm="clr-namespace:RHF_Foundation.ViewModels">
         <Button Text="All Announcements" Command="{Binding GoAnnouncementsCommand}"/>
         </VerticalStackLayout>
         </Border>
+-->
 
-
-</VerticalStackLayout>
-</ScrollView>
+    </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

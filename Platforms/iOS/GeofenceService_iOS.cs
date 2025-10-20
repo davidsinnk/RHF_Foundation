@@ -9,7 +9,7 @@ using UIKit;
 
 
 
-namespace LocationTest.Platforms.iOS;
+namespace RHF_Foundation.Platforms.iOS;
 
 
 public class GeofenceService_iOS : NSObject, IGeofenceService
