@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+x:Class="RHF_Foundation.Views.CheckInPage"
+xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+Title="Check In">
+
+
+<VerticalStackLayout Padding="24" Spacing="16">
+
+<StackLayout>
+    <Label Text="You've arrived!" FontSize="22" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+    <Label Text="Welcome to Rick's Place" FontSize="28" HorizontalTextAlignment="Center" FontAttributes="Bold" TextColor="OrangeRed"/>
+
+        <StackLayout Orientation="Horizontal" Spacing="10" VerticalOptions="Center" HorizontalOptions="Center" Margin="0,30,0,20">
+            <Label 
+                Text="Adults:" 
+                FontSize="18"
+                VerticalOptions="Center" />
+            <Picker 
+                Title="Adults"
+                ItemsSource="{Binding AdultOptions}"
+                SelectedItem="{Binding SelectedAdults}"
+                WidthRequest="50" />
+        </StackLayout>
+
+        <!-- Children Picker -->
+        <StackLayout Orientation="Horizontal" Spacing="10" VerticalOptions="Center" HorizontalOptions="Center">
+            <Label 
+                Text="Children:" 
+                FontSize="18"
+                VerticalOptions="Center" />
+            <Picker 
+                Title="Children"
+                ItemsSource="{Binding ChildOptions}"
+                SelectedItem="{Binding SelectedChildren}"
+                WidthRequest="50" />
+        </StackLayout>
+
+
+    <Button Text="Check In" Command="{Binding ArriveCommand}" BackgroundColor="OrangeRed" 
+            Padding="0,20" FontSize="Large" TextColor="WhiteSmoke" Margin="0,40"/>
+
+</StackLayout>
+ 
+        <Label Text="Checking in helps RHF track our facility use and improve services to our military and vetran community." 
+                Padding="0,30,0,10" HorizontalTextAlignment="Center"/>
+
+</VerticalStackLayout>
+</ContentPage>

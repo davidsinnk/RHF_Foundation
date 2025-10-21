@@ -28,5 +28,16 @@
 	</array>
 	<key>XSAppIconAssets</key>
 	<string>Assets.xcassets/appicon.appiconset</string>
+
+	<key>NSLocationWhenInUseUsageDescription</key>
+		<string>This app uses your location to notify you when you arrive.</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>Needed to monitor arrival even when the app is not active.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
+
+
 </dict>
 </plist>
