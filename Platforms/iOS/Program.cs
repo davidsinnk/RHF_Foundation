@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace RHF_Foundation.Platforms.iOS;
+namespace RHF_Foundation;
 
 
 public class Program

@@ -18,10 +18,19 @@ namespace RHF_Foundation.Services.APIs
             _httpClient = httpClient ?? new HttpClient();
         }
 
-        public async Task<string> CheckIn(int numberAttending = 1)
+        public async Task<string> CheckInNumberOfVisitors(int numberAttending)
         {
-            
-            string url = _url.Replace("field4=", $"field4={numberAttending}");
+            return await CheckIntoApi(4, numberAttending);
+        }
+
+        public async Task<string> CheckInArrival()
+        {
+            return await CheckIntoApi(5, 1);
+        }
+
+        private async Task<string> CheckIntoApi(int fieldNumber, int numberAttending)
+        {
+            string url = _url.Replace("field4=", $"field{fieldNumber}={numberAttending}");
             if (string.IsNullOrWhiteSpace(url))
                 throw new ArgumentException("URL cannot be null or empty.", nameof(url));
 

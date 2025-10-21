@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace RHF_Foundation.Platforms.iOS;
+namespace RHF_Foundation;
 
 [Register("AppDelegate")]
 public class AppDelegate : MauiUIApplicationDelegate

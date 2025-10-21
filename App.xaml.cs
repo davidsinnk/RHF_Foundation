@@ -10,9 +10,9 @@ public partial class App : Application
         InitializeComponent();
         MainPage = new AppShell();
 
-    #if IOS
-        // Forward notification taps to Shell navigation via delegate (set in NotificationService_iOS)
-        UserNotifications.UNUserNotificationCenter.Current.Delegate = new Platforms.iOS.NotificationDelegate();
-    #endif
+        #if IOS
+            // Forward notification taps to Shell navigation via delegate (set in NotificationService_iOS)
+            UserNotifications.UNUserNotificationCenter.Current.Delegate = new Platforms.iOS.NotificationDelegate();
+        #endif
     }
 }

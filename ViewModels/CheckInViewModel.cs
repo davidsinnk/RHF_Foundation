@@ -36,6 +36,8 @@ public partial class CheckInViewModel : ObservableObject, IQueryAttributable
     {
         _alerts = alerts;
         _nav = nav;
+
+        //yes yes... I know this is tightly couples and need to be refed to the constructor or DI service
         _api = new CheckInAPIService();
 
         AdultOptions = new ObservableCollection<int>();
@@ -61,7 +63,7 @@ public partial class CheckInViewModel : ObservableObject, IQueryAttributable
     [RelayCommand]
     private async Task CheckInAsync()
     {
-        await _alerts.ShowAsync("Checked In", $"Checked in at {PlaceId ?? "unknown"}.");
+        //await _alerts.ShowAsync("Checked In", $"Checked in at {PlaceId ?? "unknown"}.");
         //await _nav.GoToAsync("checkin");
     }
 
@@ -75,8 +77,9 @@ private async Task ArriveAsync()
                 await _alerts.ShowAsync("OH NO!!!", $"You must select at least one person to check in");
                 return;
             }
+
+        var response = await _api.CheckInNumberOfVisitors(total);
         
-        var response = await _api.CheckIn(total);
         if (response == "error")
             {
                 await _alerts.ShowAsync("OH NO!!!", $"Something went wrong");

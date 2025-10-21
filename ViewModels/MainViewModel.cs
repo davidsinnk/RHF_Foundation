@@ -16,6 +16,8 @@ using CommunityToolkit.Maui.Extensions;
 using RHF_Foundation.Models;
 using System.Windows.Input;
 using RHF_Foundation.Messaging;
+using RHF_Foundation.Services.Messaging;
+using RHF_Foundation.Services.APIs;
 
 
 namespace RHF_Foundation.ViewModels;
@@ -40,6 +42,8 @@ public partial class MainViewModel : ObservableObject
     public ObservableCollection<EventItem> Events { get; } = new();
     public ObservableCollection<CampEvent> TodayEvents { get; } = new();
     public ObservableCollection<Announcement> Announcements { get; } = new();
+
+    private ICheckInAPIService _checkInAPIService;
 
 
 // Used for Testing Geofencing
@@ -76,10 +80,14 @@ public partial class MainViewModel : ObservableObject
         _notify = notify;
         _nav = nav;
 
-        
+        //yes... we need to talk about this later...
+        //and put htis in the constructor for the DI service.... 
+        _checkInAPIService = new CheckInAPIService();
+
+
         GoScheduleCommand = new AsyncRelayCommand(async () => await Shell.Current.GoToAsync("//schedule"));
         GoMapCommand = new AsyncRelayCommand(async () => await Shell.Current.GoToAsync("//map"));
-        GoMealsCommand = new AsyncRelayCommand(async () => await Shell.Current.GoToAsync("meals"));
+        GoMealsCommand = new AsyncRelayCommand(async () => await ScanQrAsync());
         GoActivitiesCommand = new AsyncRelayCommand(async () => await Shell.Current.GoToAsync("activities"));
         GoAnnouncementsCommand = new AsyncRelayCommand(async () => await Shell.Current.GoToAsync("announcements"));
         CheckInCommand = new AsyncRelayCommand(OpenCheckInPopupAsync);
@@ -107,16 +115,24 @@ public partial class MainViewModel : ObservableObject
     private async Task OpenCheckInPopupAsync()
     {
 
-        var popup = new CheckInPopup();
-        //var popup = new CheckInPage(new CheckInViewModel(new Services.AlertService(), new Services.NavigationService()));
-        await Shell.Current.CurrentPage.ShowPopupAsync(popup);
+        //var popup = new CheckInPopup();
+        //await Shell.Current.CurrentPage.ShowPopupAsync(popup);
+
+        Dictionary<string, object> parameters = new Dictionary<string, object>
+        {
+            { "userName", "Dave" }
+        };
+
+        await _nav.GoToAsync("checkin", parameters);
 
     }
 
     private async Task ScanQrAsync()
     {
         // TODO: Integrate ZXing.Net.MAUI or CameraView for scanning
-        await Application.Current.MainPage.DisplayAlert("Check-In", "QR scanner coming soon.", "OK");
+        //await Application.Current.MainPage.DisplayAlert("Check-In", "QR scanner coming soon.", "OK");
+
+        await _notify.ShowAsync("Check-In", "QR scanner coming soon.");
     }
 
     public ICommand OpenLinkCommand => new Command<string>(async (url) =>
@@ -186,6 +202,7 @@ public partial class MainViewModel : ObservableObject
 
             try
             {
+                await _checkInAPIService.CheckInArrival();
                 StatusText = "You are at Rick's Plase";
                 await _nav.GoToAsync("checkin", new Dictionary<string, object> { ["placeId"] = m.Value });
             }
@@ -198,7 +215,15 @@ public partial class MainViewModel : ObservableObject
 
         });
 
-        StatusText = $"Location: {TargetLat}, {TargetLon}";
+
+        WeakReferenceMessenger.Default.Register<DepartedMessage>(this, (r, m) =>        
+        {
+            _lastArrivalPlaceId = null;   // allow next arrival to navigate again
+            StatusText = "Outside 300m.";
+             _notify.ShowAsync("Leaving", "You have left the geofenced area.");
+        });
+
+        
     }
 
     [RelayCommand]
@@ -206,14 +231,17 @@ public partial class MainViewModel : ObservableObject
     {
         var perm = await _notify.RequestPermissionAsync(); // notifications (Android 13+)
         var ok = await _geofence.StartMonitoringAsync(TargetLat, TargetLon, RadiusMeters);
-        StatusText = ok ? "Geofence active." : "Could not start geofence (permissions?).";
-
+        StatusText = ok ? $"Geofence active. {ok}" : "Could not start geofence (permissions?).";
 
         if (ok)
         {
             // Optional: immediate hint
-            await _notify.ShowAsync("Monitoring", "We'll notify you when you're within 300m.");
+            //This may be overkill... it sedn an alert when you start monitoring.
+            //await _notify.ShowAsync("Monitoring", "We'll notify you when you're within 300m.");
         }
+
+        //await _notify.ShowAsync("Test Notification", "Geofence monitoring started.");
+        StatusText = $"You are Monitoring Geofence.";
     }
 
 }

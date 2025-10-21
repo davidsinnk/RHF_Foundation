@@ -7,8 +7,6 @@ xmlns:vm="clr-namespace:RHF_Foundation.ViewModels">
 <!--BackgroundColor="{StaticResource PageBackground}"> -->
 
 
-
-
     <ContentPage.Resources>
         <!-- Card look & feel -->
         <Style x:Key="CardBorderStyle" TargetType="Border">
@@ -185,7 +183,7 @@ xmlns:vm="clr-namespace:RHF_Foundation.ViewModels">
         </CollectionView>
     </Grid>
 
-
+<Button Text="This Week" Command="{Binding GoMealsCommand}"/>
 
 <!-- Extra Code that needs to go... just not yet Divider 
 
