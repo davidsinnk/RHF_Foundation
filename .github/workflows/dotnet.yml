@@ -43,7 +43,29 @@ jobs:
           security find-identity -p codesigning -v || true
           ls -la ~/Library/MobileDevice/"Provisioning Profiles" || true
 
-          
+
+    - name: Verify signing identities
+      id: ids
+      shell: bash
+      run: |
+        echo "== Keychains in search list =="
+        security list-keychains
+        echo "== Valid code signing identities =="
+        security find-identity -p codesigning -v || true
+
+        # Capture the first Apple Distribution identity EXACTLY as installed
+        IDENTITY=$(security find-identity -p codesigning -v \
+          | awk -F\" '/Apple Distribution/ {print $2; exit}')
+        if [ -z "$IDENTITY" ]; then
+          echo "No Apple Distribution identity found. Check your .p12 and password."
+          exit 1
+        fi
+        echo "identity=$IDENTITY" >> $GITHUB_OUTPUT
+        echo "Using identity: $IDENTITY"
+
+        echo "== Installed profiles =="
+        ls -la ~/Library/MobileDevice/"Provisioning Profiles" || true
+        
     - name: Build
       run: dotnet publish RHF_Foundation.csproj -f net9.0-ios -c Release -p:ArchiveOnBuild=true -p:EnableAssemblyILStripping=false
     - name: List build output
