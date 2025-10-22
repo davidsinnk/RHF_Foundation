@@ -21,15 +21,18 @@ jobs:
         dotnet-version: 9.0.x
     - name: Install MAUI workload
       run: dotnet workload install maui
-    - name: Import Code-Signing Certificates
-      uses: Apple-Actions/import-codesign-certs@v1
+    - name: Import Apple Certificates
+      uses: apple-actions/import-codesign-certs@v3
       with:
         p12-file-base64: ${{ secrets.P12_CERTIFICATE }}
         p12-password: ${{ secrets.P12_CERTIFICATE_PASSWORD }}
+        keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}   # add this
+    - name: Debug signing identities and profiles
+      run: |
+        security find-identity -p codesigning -v
+          ls -la ~/Library/MobileDevice/"Provisioning Profiles" || true
     - name: Download Apple Provisioning Profiles
       uses: Apple-Actions/download-provisioning-profiles@v1
-
-
       with:
         bundle-id: 'org.rhfnow.rhffoundation'
         issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
