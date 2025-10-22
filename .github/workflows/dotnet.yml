@@ -12,29 +12,39 @@ jobs:
     runs-on: macos-latest
 
     env:
+      # Adjust these if your names/paths differ
       SOLUTION: RHF_Foundation.sln
       PROJECT: RHF_Foundation.csproj
-      BUNDLE_ID: org.rhfnow.rhffoundation
       ENTITLEMENTS: Platforms/iOS/Entitlements.plist
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      # Use a known good Xcode (or omit this step entirely)
+      # Use a real Xcode version (or 'latest-stable')
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '16.0'   # or 'latest-stable'
+          xcode-version: '16.2'
+
+      - name: Show selected Xcode
+        run: |
+          xcode-select -p
+          xcodebuild -version
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: '9.0.x'
 
-      - name: Install MAUI workload
-        run: dotnet workload install maui
+      - name: Install/Update MAUI workloads
+        run: |
+          dotnet --info
+          dotnet workload install maui
+          dotnet workload update
+          dotnet workload list
 
-      # Import the Apple Distribution .p12 (with private key)
+      # --- Import Apple Distribution cert (.p12 with private key) ---
       - name: Import Apple Certificates
         uses: apple-actions/import-codesign-certs@v3
         with:
@@ -42,7 +52,7 @@ jobs:
           p12-password: ${{ secrets.P12_CERTIFICATE_PASSWORD }}
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
 
-      # Install provisioning profile from Base64 (portable decode)
+      # --- Install provisioning profile from Base64 (portable decode for macOS/GNU) ---
       - name: Install Provisioning Profile
         shell: bash
         run: |
@@ -61,17 +71,19 @@ jobs:
           /usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' profile.plist || true
           /usr/libexec/PlistBuddy -c 'Print :ExpirationDate' profile.plist || true
 
-      # Capture the exact Apple Distribution identity string from the keychain
-      - name: Capture identity
+      # --- Capture exact Apple Distribution identity string from keychain ---
+      - name: Capture codesign identity
         id: id
         shell: bash
         run: |
+          echo "== Valid code signing identities =="
+          security find-identity -p codesigning -v || true
           ID="$(security find-identity -p codesigning -v | awk -F\" '/Apple Distribution/ {print $2; exit}')"
           test -n "$ID"
           echo "identity=$ID" >> $GITHUB_OUTPUT
           echo "Using identity: $ID"
 
-      # Capture the profile Name (to use as CodesignProvision)
+      # --- Capture provisioning profile Name (for CodesignProvision) ---
       - name: Capture profile name
         id: prof
         shell: bash
@@ -81,7 +93,7 @@ jobs:
           echo "name=$NAME" >> $GITHUB_OUTPUT
           echo "Using profile: $NAME"
 
-      # Build a signed, device (arm64) archive and produce an .ipa
+      # --- Build signed device archive (.ipa) for TestFlight ---
       - name: Publish iOS (Release, signed)
         run: |
           dotnet publish ${{ env.PROJECT }} -c Release -f net9.0-ios \
@@ -92,15 +104,16 @@ jobs:
             -p:CodesignProvision="${{ steps.prof.outputs.name }}" \
             -p:CodesignEntitlements="${{ env.ENTITLEMENTS }}"
 
-      # Find the .ipa that .NET created
+      # --- Find the produced .ipa ---
       - name: Find IPA
         id: findipa
+        shell: bash
         run: |
           IPA_PATH=$(find . -type f -name "*.ipa" | head -n 1)
           echo "ipa=$IPA_PATH" >> $GITHUB_OUTPUT
           test -n "$IPA_PATH" && echo "Found IPA: $IPA_PATH" || (echo "No IPA found" && exit 1)
 
-      # Upload to TestFlight using App Store Connect API key
+      # --- Upload to TestFlight with App Store Connect API key ---
       - name: Upload app to TestFlight
         uses: Apple-Actions/upload-testflight-build@v1
         with:
