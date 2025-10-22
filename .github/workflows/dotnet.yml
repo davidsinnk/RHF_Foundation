@@ -33,11 +33,12 @@ jobs:
           ls -la ~/Library/MobileDevice/"Provisioning Profiles" || true
       # 2) Install the provisioning profile
     - name: Install Provisioning Profile
-      uses: apple-actions/apple-provisioning-profile@v1
-      with:
-          provisioning-profile-base64: ${{ secrets.IOS_PROFILE_BASE64 }}
-
-      # --- (Optional) Debug what was installed ---
+      run: |
+        mkdir -p ~/Library/MobileDevice/"Provisioning Profiles"
+        echo "${{ secrets.IOS_PROFILE_BASE64 }}" | base64 --decode > \
+        ~/Library/MobileDevice/"Provisioning Profiles"/AppStore.mobileprovision
+      
+    # --- (Optional) Debug what was installed ---
     - name: Debug signing state
       run: |
           security find-identity -p codesigning -v || true
