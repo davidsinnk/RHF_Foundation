@@ -31,7 +31,7 @@ jobs:
 
 
       with:
-        bundle-id: 'org.rhfnow.rhffoundation'
+        bundle-id: 'RHF-Foundation-App - org.rhfnow.rhffoundation'
         issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
         api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
         api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
