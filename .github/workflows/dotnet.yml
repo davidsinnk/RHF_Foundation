@@ -1,103 +1,110 @@
-name: iOS Testflight CI/CD
+name: iOS TestFlight CI/CD
 
 on:
   push:
     branches: [ "iOS_Testing" ]
   pull_request:
     branches: [ "iOS_Testing" ]
+  workflow_dispatch:
 
 jobs:
   build-ios:
     runs-on: macos-latest
+
+    env:
+      SOLUTION: RHF_Foundation.sln
+      PROJECT: RHF_Foundation.csproj
+      BUNDLE_ID: org.rhfnow.rhffoundation
+      ENTITLEMENTS: Platforms/iOS/Entitlements.plist
+
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup Xcode version
-      uses: maxim-lobanov/setup-xcode@v1.6.0
-      with:
-        xcode-version: 26.0
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 9.0.x
-    - name: Install MAUI workload
-      run: dotnet workload install maui
+      - uses: actions/checkout@v4
 
+      # Use a known good Xcode (or omit this step entirely)
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.0'   # or 'latest-stable'
 
-    - name: Import Apple Certificates
-      uses: apple-actions/import-codesign-certs@v3
-      with:
-        p12-file-base64: ${{ secrets.P12_CERTIFICATE }}
-        p12-password: ${{ secrets.P12_CERTIFICATE_PASSWORD }}
-        keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
 
-    - name: Inspect keychains and identities
-      shell: bash
-      run: |
-        set -euxo pipefail
-        echo "== Keychains in search list =="
-        security list-keychains
-    
-        echo "== Default keychain =="
-        security default-keychain -d user
-    
-        echo "== Valid code signing identities (all keychains) =="
-        security find-identity -p codesigning -v || true
-    
-        echo "== Try to extract the installed cert from the provided .p12 =="
-        # (This does NOT print your private key)
-        echo "${{ secrets.P12_CERTIFICATE }}" | base64 -d > cert.p12
-        openssl pkcs12 -in cert.p12 -nodes -nokeys -passin pass:${{ secrets.P12_CERTIFICATE_PASSWORD }} \
-          | openssl x509 -noout -subject -issuer -enddate    
-          
-    - name: Debug signing identities and profiles
-      run: |
-        security find-identity -p codesigning -v
-          ls -la ~/Library/MobileDevice/"Provisioning Profiles" || true
-          
-      # 2) Install the provisioning profile
-    - name: Install Provisioning Profile
-      run: |
-        mkdir -p ~/Library/MobileDevice/"Provisioning Profiles"
-        echo "${{ secrets.IOS_PROFILE_BASE64 }}" | base64 --decode > \
-        ~/Library/MobileDevice/"Provisioning Profiles"/AppStore.mobileprovision
-      
-    # --- (Optional) Debug what was installed ---
-    - name: Debug signing state
-      run: |
-          security find-identity -p codesigning -v || true
-          ls -la ~/Library/MobileDevice/"Provisioning Profiles" || true
+      - name: Install MAUI workload
+        run: dotnet workload install maui
 
+      # Import the Apple Distribution .p12 (with private key)
+      - name: Import Apple Certificates
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.P12_CERTIFICATE }}
+          p12-password: ${{ secrets.P12_CERTIFICATE_PASSWORD }}
+          keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
 
-    - name: Verify signing identities
-      id: ids
-      shell: bash
-      run: |
-        echo "== Keychains in search list =="
-        security list-keychains
-        echo "== Valid code signing identities =="
-        security find-identity -p codesigning -v || true
+      # Install provisioning profile from Base64 (portable decode)
+      - name: Install Provisioning Profile
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          PROFILE="$HOME/Library/MobileDevice/Provisioning Profiles/AppStore.mobileprovision"
+          if base64 --help 2>&1 | grep -q -- '--decode'; then
+            printf %s "${{ secrets.IOS_PROFILE_BASE64 }}" | base64 --decode > "$PROFILE"
+          else
+            printf %s "${{ secrets.IOS_PROFILE_BASE64 }}" | base64 -D > "$PROFILE"
+          fi
+          /usr/bin/security cms -D -i "$PROFILE" > profile.plist
+          echo "== Provisioning Profile Summary =="
+          /usr/libexec/PlistBuddy -c 'Print :Name' profile.plist || true
+          /usr/libexec/PlistBuddy -c 'Print :UUID' profile.plist || true
+          /usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' profile.plist || true
+          /usr/libexec/PlistBuddy -c 'Print :ExpirationDate' profile.plist || true
 
-        # Capture the first Apple Distribution identity EXACTLY as installed
-        IDENTITY=$(security find-identity -p codesigning -v \
-          | awk -F\" '/Apple Distribution/ {print $2; exit}')
-        if [ -z "$IDENTITY" ]; then
-          echo "No Apple Distribution identity found. Check your .p12 and password."
-          exit 1
-        fi
-        echo "identity=$IDENTITY" >> $GITHUB_OUTPUT
-        echo "Using identity: $IDENTITY"
+      # Capture the exact Apple Distribution identity string from the keychain
+      - name: Capture identity
+        id: id
+        shell: bash
+        run: |
+          ID="$(security find-identity -p codesigning -v | awk -F\" '/Apple Distribution/ {print $2; exit}')"
+          test -n "$ID"
+          echo "identity=$ID" >> $GITHUB_OUTPUT
+          echo "Using identity: $ID"
 
-        echo "== Installed profiles =="
-        ls -la ~/Library/MobileDevice/"Provisioning Profiles" || true
-        
-    - name: Build
-      run: dotnet publish RHF_Foundation.csproj -f net9.0-ios -c Release -p:ArchiveOnBuild=true -p:EnableAssemblyILStripping=false
-    - name: List build output
-      run: ls -R RHF_Foundation/bin/Debug/net9.0-ios/publish/
-    - name: Upload app to TestFlight
-      uses: Apple-Actions/upload-testflight-build@v1
-      with:
-        app-path: 'RHF_Foundation/bin/Release/net9.0-ios/publish/RHF_Foundation.ipa'
-        issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
-        api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
-        api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+      # Capture the profile Name (to use as CodesignProvision)
+      - name: Capture profile name
+        id: prof
+        shell: bash
+        run: |
+          NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' profile.plist)
+          test -n "$NAME"
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+          echo "Using profile: $NAME"
+
+      # Build a signed, device (arm64) archive and produce an .ipa
+      - name: Publish iOS (Release, signed)
+        run: |
+          dotnet publish ${{ env.PROJECT }} -c Release -f net9.0-ios \
+            -p:RuntimeIdentifier=ios-arm64 \
+            -p:ArchiveOnBuild=true \
+            -p:CreatePackage=true \
+            -p:CodesignKey="${{ steps.id.outputs.identity }}" \
+            -p:CodesignProvision="${{ steps.prof.outputs.name }}" \
+            -p:CodesignEntitlements="${{ env.ENTITLEMENTS }}"
+
+      # Find the .ipa that .NET created
+      - name: Find IPA
+        id: findipa
+        run: |
+          IPA_PATH=$(find . -type f -name "*.ipa" | head -n 1)
+          echo "ipa=$IPA_PATH" >> $GITHUB_OUTPUT
+          test -n "$IPA_PATH" && echo "Found IPA: $IPA_PATH" || (echo "No IPA found" && exit 1)
+
+      # Upload to TestFlight using App Store Connect API key
+      - name: Upload app to TestFlight
+        uses: Apple-Actions/upload-testflight-build@v1
+        with:
+          app-path: ${{ steps.findipa.outputs.ipa }}
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
