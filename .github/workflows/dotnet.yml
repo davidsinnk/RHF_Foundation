@@ -10,65 +10,66 @@ on:
 jobs:
   build-ios:
     runs-on: macos-latest
-
     env:
-      # Adjust these if your names/paths differ
-      SOLUTION: RHF_Foundation.sln
       PROJECT: RHF_Foundation.csproj
       ENTITLEMENTS: Platforms/iOS/Entitlements.plist
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+      DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE: 1
+      DOTNET_WORKLOAD_DISABLE_SUGGESTIONS: 1
 
     steps:
-
-
-      - name: Toolchain diagnostics
-        run: |
-          echo "=== Xcode ==="
-          xcodebuild -version
-          echo "=== dotnet ==="
-          dotnet --info
-          dotnet --list-sdks
-          dotnet workload list
-          echo "=== global.json (if any) ==="
-          test -f global.json && cat global.json || echo "no global.json"
-          echo "=== iOS workload manifests that mention 26 ==="
-          find ~/.dotnet/sdk-manifests -name WorkloadManifest.json -print -exec sh -c "grep -n \"26\\.0\" {} || true" \;
-
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Use a real Xcode version (or 'latest-stable')
+      # Pin a real Xcode (works with stable .NET 9 iOS workloads)
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '16.2'
+          xcode-version: '16.4'
 
       - name: Show selected Xcode
         run: |
           xcode-select -p
           xcodebuild -version
 
-      - name: Setup .NET
+      - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
-      - name: Install/Update MAUI workloads
+      # Pin a STABLE workload-set so we don't pick preview iOS packs that demand Xcode 26
+      - name: Pin workload set (global.json)
+        shell: bash
+        run: |
+          cat > global.json << 'JSON'
+          {
+            "sdk": {
+              "version": "9.0.306",
+              "rollForward": "latestFeature",
+              "workloadVersion": "9.0.300"
+            }
+          }
+          JSON
+          echo "== global.json =="
+          cat global.json
+
+      # Install MAUI from NuGet ONLY (no preview feeds, no update)
+      - name: Install stable MAUI workloads
         run: |
           dotnet --info
-          dotnet workload install maui
-          dotnet workload update
+          dotnet workload install maui --source https://api.nuget.org/v3/index.json
           dotnet workload list
 
-      # --- Import Apple Distribution cert (.p12 with private key) ---
-      - name: Import Apple Certificates
+      # ---- Code signing material ----
+      - name: Import Apple Certificates (.p12 with private key)
         uses: apple-actions/import-codesign-certs@v3
         with:
           p12-file-base64: ${{ secrets.P12_CERTIFICATE }}
           p12-password: ${{ secrets.P12_CERTIFICATE_PASSWORD }}
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
 
-      # --- Install provisioning profile from Base64 (portable decode for macOS/GNU) ---
-      - name: Install Provisioning Profile
+      - name: Install Provisioning Profile (App Store Connect)
         shell: bash
         run: |
           set -euo pipefail
@@ -86,7 +87,6 @@ jobs:
           /usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' profile.plist || true
           /usr/libexec/PlistBuddy -c 'Print :ExpirationDate' profile.plist || true
 
-      # --- Capture exact Apple Distribution identity string from keychain ---
       - name: Capture codesign identity
         id: id
         shell: bash
@@ -98,7 +98,6 @@ jobs:
           echo "identity=$ID" >> $GITHUB_OUTPUT
           echo "Using identity: $ID"
 
-      # --- Capture provisioning profile Name (for CodesignProvision) ---
       - name: Capture profile name
         id: prof
         shell: bash
@@ -108,7 +107,7 @@ jobs:
           echo "name=$NAME" >> $GITHUB_OUTPUT
           echo "Using profile: $NAME"
 
-      # --- Build signed device archive (.ipa) for TestFlight ---
+      # ---- Build signed .ipa for device/TestFlight ----
       - name: Publish iOS (Release, signed)
         run: |
           dotnet publish ${{ env.PROJECT }} -c Release -f net9.0-ios \
@@ -119,16 +118,13 @@ jobs:
             -p:CodesignProvision="${{ steps.prof.outputs.name }}" \
             -p:CodesignEntitlements="${{ env.ENTITLEMENTS }}"
 
-      # --- Find the produced .ipa ---
       - name: Find IPA
         id: findipa
-        shell: bash
         run: |
           IPA_PATH=$(find . -type f -name "*.ipa" | head -n 1)
           echo "ipa=$IPA_PATH" >> $GITHUB_OUTPUT
           test -n "$IPA_PATH" && echo "Found IPA: $IPA_PATH" || (echo "No IPA found" && exit 1)
 
-      # --- Upload to TestFlight with App Store Connect API key ---
       - name: Upload app to TestFlight
         uses: Apple-Actions/upload-testflight-build@v1
         with:
@@ -136,3 +132,4 @@ jobs:
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+
