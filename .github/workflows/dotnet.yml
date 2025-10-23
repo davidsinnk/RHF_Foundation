@@ -87,6 +87,41 @@ jobs:
           /usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' profile.plist || true
           /usr/libexec/PlistBuddy -c 'Print :ExpirationDate' profile.plist || true
 
+      - name: Provisioning sanity check (profile ↔ cert)
+        id: provcheck
+        shell: bash
+        run: |
+          set -euxo pipefail
+      
+          PROFILE="$HOME/Library/MobileDevice/Provisioning Profiles/AppStore.mobileprovision"
+          /usr/bin/security cms -D -i "$PROFILE" > profile.plist
+      
+          echo "== Profile basics =="
+          /usr/libexec/PlistBuddy -c 'Print :Name' profile.plist
+          /usr/libexec/PlistBuddy -c 'Print :UUID' profile.plist
+          /usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' profile.plist
+          /usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' profile.plist
+      
+          # Grab SHA-1 of your imported Apple Distribution cert
+          CERT_SHA1=$(security find-certificate -c "Apple Distribution:" -a -Z | awk '/SHA-1 hash:/ {print $3; exit}')
+          echo "Codesign identity SHA1: $CERT_SHA1"
+          echo "certsha1=$CERT_SHA1" >> $GITHUB_OUTPUT
+      
+          # See if the profile contains the same cert (older-style profiles list DeveloperCertificates)
+          # Not all modern App Store profiles list certs, so this may be empty; that's OK.
+          echo "== Profile DeveloperCertificates (if present) =="
+          /usr/libexec/PlistBuddy -c 'Print :DeveloperCertificates' profile.plist >/dev/null 2>&1 || { echo "None listed (modern profile)"; exit 0; }
+      
+          # If present, extract the first embedded cert and print its SHA1
+          /usr/libexec/PlistBuddy -x -c 'Print :DeveloperCertificates:0' profile.plist > devcert1.der || true
+          if [ -s devcert1.der ]; then
+            PROF_SHA1=$(openssl x509 -inform DER -in devcert1.der -noout -fingerprint -sha1 | sed 's/.*=//; s/://g')
+            echo "Profile first developer cert SHA1: $PROF_SHA1"
+            if [ "$CERT_SHA1" != "$PROF_SHA1" ]; then
+              echo "::warning::Profile likely tied to a different certificate. Recreate it selecting your NEW Apple Distribution cert."
+            fi
+          fi
+
       - name: Capture codesign identity
         id: id
         shell: bash
