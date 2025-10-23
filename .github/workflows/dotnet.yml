@@ -123,14 +123,16 @@ jobs:
       # ---- Build signed .ipa for device/TestFlight ----
       - name: Publish iOS (Release, signed)
         run: |
-          dotnet publish ${{ env.PROJECT }} -c Release -f net9.0-ios \
+          dotnet publish RHF_Foundation.csproj -c Release -f net9.0-ios \
             -p:RuntimeIdentifier=ios-arm64 \
             -p:ArchiveOnBuild=true \
             -p:CreatePackage=true \
+            -p:ApplicationId=org.rhfnow.rhffoundation \
             -p:CodesignKey="${{ steps.id.outputs.identity }}" \
             -p:CodesignProvision="${{ steps.profuuid.outputs.uuid }}" \
             -p:CodesignTeamId="${{ steps.team.outputs.id }}" \
-            -p:CodesignEntitlements="${{ env.ENTITLEMENTS }}"
+            -p:CodesignEntitlements="Platforms/iOS/Entitlements.plist"
+
 
       - name: Find IPA
         id: findipa
