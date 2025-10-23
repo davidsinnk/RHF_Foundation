@@ -123,14 +123,14 @@ jobs:
           if [ ! -f "Platforms/iOS/Entitlements.plist" ]; then
             mkdir -p Platforms/iOS
             cat > Platforms/iOS/Entitlements.plist <<'PLIST'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <!-- Add entitlements here as needed (e.g., aps-environment for Push) -->
-</dict>
-</plist>
-PLIST
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+            <plist version="1.0">
+            <dict>
+              <!-- Add entitlements here as needed (e.g., aps-environment for Push) -->
+            </dict>
+            </plist>
+            PLIST
             echo "created=true" >> $GITHUB_OUTPUT
           else
             echo "created=false" >> $GITHUB_OUTPUT
