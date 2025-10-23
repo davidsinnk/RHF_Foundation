@@ -38,10 +38,9 @@
 		<string>location</string>
 	</array>
 
-	<key>CFBundleIdentifier</key>
-	<string>$(CFBundleIdentifier)</string>
 
 
 
 </dict>
 </plist>
+
