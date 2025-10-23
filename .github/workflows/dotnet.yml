@@ -18,6 +18,21 @@ jobs:
       ENTITLEMENTS: Platforms/iOS/Entitlements.plist
 
     steps:
+
+
+      - name: Toolchain diagnostics
+        run: |
+          echo "=== Xcode ==="
+          xcodebuild -version
+          echo "=== dotnet ==="
+          dotnet --info
+          dotnet --list-sdks
+          dotnet workload list
+          echo "=== global.json (if any) ==="
+          test -f global.json && cat global.json || echo "no global.json"
+          echo "=== iOS workload manifests that mention 26 ==="
+          find ~/.dotnet/sdk-manifests -name WorkloadManifest.json -print -exec sh -c "grep -n \"26\\.0\" {} || true" \;
+
       - name: Checkout
         uses: actions/checkout@v4
 
