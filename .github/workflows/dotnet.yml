@@ -22,7 +22,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Pin a real Xcode (works with stable .NET 9 iOS workloads)
+      # Pin a real Xcode version that matches stable .NET 9 iOS workloads
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
@@ -38,7 +38,7 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      # Pin a STABLE workload-set so we don't pick preview iOS packs that demand Xcode 26
+      # Pin a stable workload set to avoid preview iOS packs that demand Xcode 26
       - name: Pin workload set (global.json)
         shell: bash
         run: |
@@ -51,10 +51,9 @@ jobs:
             }
           }
           JSON
-          echo "== global.json =="
-          cat global.json
+          echo "== global.json ==" && cat global.json
 
-      # Install MAUI from NuGet ONLY (no preview feeds, no update)
+      # Install MAUI workloads from NuGet ONLY (do not 'workload update')
       - name: Install stable MAUI workloads
         run: |
           dotnet --info
@@ -75,53 +74,21 @@ jobs:
           set -euo pipefail
           mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
           PROFILE="$HOME/Library/MobileDevice/Provisioning Profiles/AppStore.mobileprovision"
+          rm -f "$PROFILE" || true
+          # Portable Base64 decode (GNU/BSD)
           if base64 --help 2>&1 | grep -q -- '--decode'; then
             printf %s "${{ secrets.IOS_PROFILE_BASE64 }}" | base64 --decode > "$PROFILE"
           else
             printf %s "${{ secrets.IOS_PROFILE_BASE64 }}" | base64 -D > "$PROFILE"
           fi
           /usr/bin/security cms -D -i "$PROFILE" > profile.plist
-          echo "== Provisioning Profile Summary =="
+          echo "== Profile basics =="
           /usr/libexec/PlistBuddy -c 'Print :Name' profile.plist || true
           /usr/libexec/PlistBuddy -c 'Print :UUID' profile.plist || true
           /usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' profile.plist || true
-          /usr/libexec/PlistBuddy -c 'Print :ExpirationDate' profile.plist || true
+          /usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' profile.plist || true
 
-      - name: Provisioning sanity check (profile ↔ cert)
-        id: provcheck
-        shell: bash
-        run: |
-          set -euxo pipefail
-      
-          PROFILE="$HOME/Library/MobileDevice/Provisioning Profiles/AppStore.mobileprovision"
-          /usr/bin/security cms -D -i "$PROFILE" > profile.plist
-      
-          echo "== Profile basics =="
-          /usr/libexec/PlistBuddy -c 'Print :Name' profile.plist
-          /usr/libexec/PlistBuddy -c 'Print :UUID' profile.plist
-          /usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' profile.plist
-          /usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' profile.plist
-      
-          # Grab SHA-1 of your imported Apple Distribution cert
-          CERT_SHA1=$(security find-certificate -c "Apple Distribution:" -a -Z | awk '/SHA-1 hash:/ {print $3; exit}')
-          echo "Codesign identity SHA1: $CERT_SHA1"
-          echo "certsha1=$CERT_SHA1" >> $GITHUB_OUTPUT
-      
-          # See if the profile contains the same cert (older-style profiles list DeveloperCertificates)
-          # Not all modern App Store profiles list certs, so this may be empty; that's OK.
-          echo "== Profile DeveloperCertificates (if present) =="
-          /usr/libexec/PlistBuddy -c 'Print :DeveloperCertificates' profile.plist >/dev/null 2>&1 || { echo "None listed (modern profile)"; exit 0; }
-      
-          # If present, extract the first embedded cert and print its SHA1
-          /usr/libexec/PlistBuddy -x -c 'Print :DeveloperCertificates:0' profile.plist > devcert1.der || true
-          if [ -s devcert1.der ]; then
-            PROF_SHA1=$(openssl x509 -inform DER -in devcert1.der -noout -fingerprint -sha1 | sed 's/.*=//; s/://g')
-            echo "Profile first developer cert SHA1: $PROF_SHA1"
-            if [ "$CERT_SHA1" != "$PROF_SHA1" ]; then
-              echo "::warning::Profile likely tied to a different certificate. Recreate it selecting your NEW Apple Distribution cert."
-            fi
-          fi
-
+      # Capture the exact Apple Distribution identity installed in the temp keychain
       - name: Capture codesign identity
         id: id
         shell: bash
@@ -133,14 +100,25 @@ jobs:
           echo "identity=$ID" >> $GITHUB_OUTPUT
           echo "Using identity: $ID"
 
-      - name: Capture profile name
-        id: prof
+      # Capture provisioning profile UUID (bullet-proof vs name)
+      - name: Capture profile UUID
+        id: profuuid
         shell: bash
         run: |
-          NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' profile.plist)
-          test -n "$NAME"
-          echo "name=$NAME" >> $GITHUB_OUTPUT
-          echo "Using profile: $NAME"
+          UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' profile.plist)
+          test -n "$UUID"
+          echo "uuid=$UUID" >> $GITHUB_OUTPUT
+          echo "Using profile UUID: $UUID"
+
+      # Capture Team ID from the profile (avoid hardcoding)
+      - name: Capture team id
+        id: team
+        shell: bash
+        run: |
+          TEAM=$(/usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' profile.plist)
+          test -n "$TEAM"
+          echo "id=$TEAM" >> $GITHUB_OUTPUT
+          echo "Using Team ID: $TEAM"
 
       # ---- Build signed .ipa for device/TestFlight ----
       - name: Publish iOS (Release, signed)
@@ -150,11 +128,13 @@ jobs:
             -p:ArchiveOnBuild=true \
             -p:CreatePackage=true \
             -p:CodesignKey="${{ steps.id.outputs.identity }}" \
-            -p:CodesignProvision="${{ steps.prof.outputs.name }}" \
+            -p:CodesignProvision="${{ steps.profuuid.outputs.uuid }}" \
+            -p:CodesignTeamId="${{ steps.team.outputs.id }}" \
             -p:CodesignEntitlements="${{ env.ENTITLEMENTS }}"
 
       - name: Find IPA
         id: findipa
+        shell: bash
         run: |
           IPA_PATH=$(find . -type f -name "*.ipa" | head -n 1)
           echo "ipa=$IPA_PATH" >> $GITHUB_OUTPUT
@@ -167,4 +147,5 @@ jobs:
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+
 
