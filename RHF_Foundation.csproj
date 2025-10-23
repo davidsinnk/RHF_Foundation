@@ -71,17 +71,19 @@
 			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
 		</ItemGroup>
 
+	<PropertyGroup>
+		<ApplicationId>org.rhfnow.rhffoundation</ApplicationId>
+		<CFBundleIdentifier>org.rhfnow.rhffoundation</CFBundleIdentifier>
+	</PropertyGroup>
 
+	<ItemGroup>
+		<MauiXaml Update="Views\MealsPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
 
-
-<ItemGroup>
-	<MauiXaml Update="Views\MealsPage.xaml">
-		<Generator>MSBuild:Compile</Generator>
-	</MauiXaml>
-
-	<MauiXaml Update="Views\SchedulePage.xaml">
-		<Generator>MSBuild:Compile</Generator>
-	</MauiXaml>
-</ItemGroup>
+		<MauiXaml Update="Views\SchedulePage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+	</ItemGroup>
 
 </Project>
