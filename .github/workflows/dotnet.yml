@@ -3,13 +3,12 @@ name: iOS TestFlight CI/CD
 on:
   push:
     branches: [ "iOS_Testing" ]
-  pull_request:
-    branches: [ "iOS_Testing" ]
   workflow_dispatch:
 
 jobs:
   build-ios:
-    runs-on: macos-latest
+    # Pin to a stable image to avoid surprise Xcode changes
+    runs-on: macos-14
     env:
       PROJECT: RHF_Foundation.csproj
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
@@ -21,7 +20,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Pin Xcode to a real version compatible with .NET 9 iOS
+      # Pin Xcode to a version compatible with .NET 9 iOS packs you’ve been using
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
@@ -37,101 +36,92 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      # Pin a STABLE workload set (avoids preview iOS packs that require Xcode 26)
+      # Pin a stable workload set so the iOS SDK doesn’t jump ahead
       - name: Pin workload set (global.json)
         run: |
-          echo '{' > global.json
-          echo '  "sdk": {' >> global.json
-          echo '    "version": "9.0.306",' >> global.json
-          echo '    "rollForward": "latestFeature",' >> global.json
-          echo '    "workloadVersion": "9.0.300"' >> global.json
-          echo '  }' >> global.json
-          echo '}' >> global.json
-          echo "== global.json =="
-          cat global.json
+          cat > global.json <<'JSON'
+          {
+            "sdk": {
+              "version": "9.0.306",
+              "rollForward": "latestFeature",
+              "workloadVersion": "9.0.300"
+            }
+          }
+          JSON
+          echo "== global.json ==" && cat global.json
 
-      - name: Install stable MAUI workloads
+      - name: Install MAUI workloads
         run: |
           dotnet --info
           dotnet workload install maui --source https://api.nuget.org/v3/index.json
           dotnet workload list
 
-      # ---- Code signing material ----
+      # ---------- Code signing (import every run) ----------
       - name: Import Apple Certificates (.p12 with private key)
+        id: certs
         uses: apple-actions/import-codesign-certs@v3
         with:
           p12-file-base64: ${{ secrets.P12_CERTIFICATE }}
           p12-password: ${{ secrets.P12_CERTIFICATE_PASSWORD }}
-          keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
 
-      - name: Install Provisioning Profile (App Store Connect)
-        shell: bash
+      - name: Install provisioning profile
+        id: prov
+        uses: apple-actions/install-provisioning-profile@v3
+        with:
+          provisioning-profile-base64: ${{ secrets.IOS_PROFILE_BASE64 }}
+
+      # Optional but helpful: fail early if identity is missing/expired
+      - name: Verify signing identities & keychain
         run: |
-          set -euo pipefail
-          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
-          PROFILE="$HOME/Library/MobileDevice/Provisioning Profiles/AppStore.mobileprovision"
-          rm -f "$PROFILE" || true
-          if base64 --help 2>&1 | grep -q -- '--decode'; then
-            printf %s "${{ secrets.IOS_PROFILE_BASE64 }}" | base64 --decode > "$PROFILE"
-          else
-            printf %s "${{ secrets.IOS_PROFILE_BASE64 }}" | base64 -D > "$PROFILE"
+          echo "== Keychains ==" && security list-keychains
+          echo "== Identities ==" && security find-identity -v -p codesigning || true
+          COUNT=$(security find-identity -v -p codesigning | grep -c "Apple Distribution" || true)
+          if [ "$COUNT" -lt 1 ]; then
+            echo "No Apple Distribution identity found. Check cert expiry, secrets, or forked PR (no secrets)."
+            exit 1
           fi
-          /usr/bin/security cms -D -i "$PROFILE" > profile.plist
-          echo "== Profile basics =="
-          /usr/libexec/PlistBuddy -c 'Print :Name' profile.plist || true
-          /usr/libexec/PlistBuddy -c 'Print :UUID' profile.plist || true
-          /usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' profile.plist || true
-          /usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' profile.plist || true
 
-      - name: Capture codesign identity
-        id: id
-        shell: bash
+      # ---------- Versioning that always increases ----------
+      # Keep your marketing version in the csproj; only set the BUILD NUMBER here.
+      # Using a UTC timestamp (YYYYMMDDHHMMSS) guarantees monotonic increase for TestFlight.
+      - name: Set versions
         run: |
-          echo "== Valid code signing identities =="
-          security find-identity -p codesigning -v || true
-          ID="$(security find-identity -p codesigning -v | awk -F\" '/Apple Distribution/ {print $2; exit}')"
-          test -n "$ID"
-          echo "identity=$ID" >> $GITHUB_OUTPUT
-          echo "Using identity: $ID"
+          echo "BUILD_NUMBER=$(date -u +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+          echo "Using BUILD_NUMBER=$BUILD_NUMBER"
 
-      - name: Capture profile UUID
-        id: profuuid
-        shell: bash
-        run: |
-          UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' profile.plist)
-          test -n "$UUID"
-          echo "uuid=$UUID" >> $GITHUB_OUTPUT
-          echo "Using profile UUID: $UUID"
-
-      - name: Capture team id
-        id: team
-        shell: bash
-        run: |
-          TEAM=$(/usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' profile.plist)
-          test -n "$TEAM"
-          echo "id=$TEAM" >> $GITHUB_OUTPUT
-          echo "Using Team ID: $TEAM"
-      - name: Set versioning
-        run: |
-          echo "MARKETING_VERSION=1.0.0" >> $GITHUB_ENV   # or read from a tag
-          echo "BUILD_NUMBER=$((10000 + $GITHUB_RUN_NUMBER))" >> $GITHUB_ENV
-            # ---- Build signed .ipa for device/TestFlight ----
+      # ---------- Build + sign + create IPA ----------
       - name: Publish iOS (Release, signed)
+        # Don’t attempt signing in PRs from forks (no secrets there)
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
         run: |
+          # Grab the installed profile UUID for CodesignProvision
+          PROFILE=$(ls "$HOME/Library/MobileDevice/Provisioning Profiles"/*.mobileprovision | head -n 1)
+          /usr/bin/security cms -D -i "$PROFILE" > profile.plist
+          UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' profile.plist)
+          TEAM=$(/usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' profile.plist)
+
           dotnet publish ${{ env.PROJECT }} -c Release -f net9.0-ios \
             -p:RuntimeIdentifier=ios-arm64 \
             -p:ArchiveOnBuild=true \
-            -p:ApplicationDisplayVersion=${{ env.MARKETING_VERSION }} \
-            -p:ApplicationVersion=${{ env.BUILD_NUMBER }}
             -p:CreatePackage=true \
+            -p:BuildIpa=true \
+            -p:ApplicationVersion=${{ env.BUILD_NUMBER }} \
             -p:ApplicationId=org.rhfnow.rhffoundation \
-            -p:CodesignKey="${{ steps.id.outputs.identity }}" \
-            -p:CodesignProvision="${{ steps.profuuid.outputs.uuid }}" \
-            -p:CodesignTeamId="${{ steps.team.outputs.id }}"
+            -p:CodesignKey="Apple Distribution" \
+            -p:CodesignProvision="$UUID" \
+            -p:CodesignTeamId="$TEAM" \
+            -p:CodesignKeychain="${{ steps.certs.outputs.keychain-path }}"
+
+      # Quick sanity check of what went in the Info.plist
+      - name: Verify Info.plist versions
+        run: |
+          PLIST="bin/Release/net9.0-ios/ios-arm64/publish/RHF_Foundation.app/Info.plist"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$PLIST" || true
+          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$PLIST" || true
+          /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$PLIST" || true
 
       - name: Find IPA
         id: findipa
-        shell: bash
         run: |
           IPA_PATH=$(find . -type f -name "*.ipa" | head -n 1)
           echo "ipa=$IPA_PATH" >> $GITHUB_OUTPUT
@@ -144,4 +134,3 @@ jobs:
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
-
