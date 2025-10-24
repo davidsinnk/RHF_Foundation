@@ -19,9 +19,9 @@ Tabbar-background-color="{StaticResource RicksOrange}">
 <!-- Landing / Home -->
 <TabBar>
 <ShellContent Title="Home" ContentTemplate="{DataTemplate views:MainPage}" Route="home"/>
-<ShellContent Title="Get Involved" ContentTemplate="{DataTemplate views:SchedulePage}" Route="schedule"/>
-<ShellContent Title="Activities" ContentTemplate="{DataTemplate views:MapPage}" Route="map"/>
-<ShellContent Title="Activities" ContentTemplate="{DataTemplate views:CheckInPage}" Route="checkin"/>
+<ShellContent Title="Get Involved" ContentTemplate="{DataTemplate views:GetInvolved}" Route="getinvolved"/>
+<ShellContent Title="Activities" ContentTemplate="{DataTemplate views:ActivitiesPage}" Route="activites"/>
+
 
 <!--
 

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="RHF_Foundation.Views.GetInvolved"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RHF_Foundation.ViewModels"
+    Title="Get Involved">
+
+    <ContentPage.BindingContext>
+        <vm:GetInvolvedViewModel />
+    </ContentPage.BindingContext>
+
+ <Grid RowDefinitions="Auto,Auto,*" Padding="0">
+
+        <!-- Header label -->
+        <Label
+            Text="GET INVOLVED"
+            FontAttributes="Bold"
+            FontSize="32"
+            HorizontalOptions="Center"
+            TextColor="{StaticResource RicksOrange}"
+            Margin="0,20,0,10"/>
+
+        <!-- Top bar "tabs" -->
+        <Grid
+            Grid.Row="1"
+            BackgroundColor="#F7F7F7"
+            Padding="0,8"
+            RowSpacing="0"
+            ColumnDefinitions="*,*">
+
+            <!-- Waiver tab button -->
+            <Border
+                x:Name="WaiverTab"
+                StrokeThickness="0"
+                Padding="16,10"
+                Grid.Column="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Optional icon above text -->
+                    <Image
+                        Source="waiver.png"
+                        HeightRequest="20"
+                        WidthRequest="20"
+                        HorizontalOptions="Center"
+                        Margin="0,0,0,4"/>
+
+                    <Label
+                        Grid.Row="1"
+                        Text="Waiver"
+                        FontAttributes="Bold"
+                        HorizontalTextAlignment="Center"/>
+                </Grid>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding SelectWaiverCommand}"/>
+                </Border.GestureRecognizers>
+                <Border.Triggers>
+                    <!-- Highlight when selected -->
+                    <DataTrigger TargetType="Border" Binding="{Binding IsWaiverVisible}" Value="True">
+                        <Setter Property="BackgroundColor" Value="White"/>
+                        <Setter Property="Stroke" Value="{StaticResource RicksOrange}"/>
+                        <Setter Property="StrokeThickness" Value="3"/>
+                    </DataTrigger>
+                    <DataTrigger TargetType="Border" Binding="{Binding IsWaiverVisible}" Value="False">
+                        <Setter Property="BackgroundColor" Value="{StaticResource RicksOrange}"/>
+                        <Setter Property="StrokeThickness" Value="0"/>
+                    </DataTrigger>
+                </Border.Triggers>
+            </Border>
+
+            <!-- Volunteer tab button -->
+            <Border
+                x:Name="VolunteerTab"
+                StrokeThickness="0"
+                Padding="16,10"
+                Grid.Column="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Image
+                        Source="volunteer.png"
+                        HeightRequest="20"
+                        WidthRequest="20"
+                        HorizontalOptions="Center"
+                        Margin="0,0,0,4"/>
+
+                    <Label
+                        Grid.Row="1"
+                        Text="Volunteer"
+                        FontAttributes="Bold"
+                        HorizontalTextAlignment="Center"/>
+                </Grid>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding SelectVolunteerCommand}"/>
+                </Border.GestureRecognizers>
+                <Border.Triggers>
+                    <DataTrigger TargetType="Border" Binding="{Binding IsVolunteerVisible}" Value="True">
+                        <Setter Property="BackgroundColor" Value="White"/>
+                        <Setter Property="Stroke" Value="{StaticResource RicksOrange}"/>
+                        <Setter Property="StrokeThickness" Value="2"/>
+                    </DataTrigger>
+                    <DataTrigger TargetType="Border" Binding="{Binding IsVolunteerVisible}" Value="False">
+                        <Setter Property="BackgroundColor" Value="{StaticResource RicksOrange}"/>
+                        <Setter Property="StrokeThickness" Value="0"/>
+                    </DataTrigger>
+                </Border.Triggers>
+            </Border>
+        </Grid>
+
+        <!-- Body -->
+        <ScrollView Grid.Row="2" Padding="24">
+            <Grid>
+                <!-- Waiver section -->
+                <ContentView IsVisible="{Binding IsWaiverVisible}">
+                    <VerticalStackLayout Spacing="20" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Image Source="waiver.png" WidthRequest="100" HeightRequest="100" HorizontalOptions="Center"/>
+                        <Button
+                            Text="Open Waiver Form"
+                            FontSize="18"
+                            HorizontalOptions="Center"
+                            Command="{Binding OpenWaiverCommand}"/>
+                    </VerticalStackLayout>
+                </ContentView>
+
+                <!-- Volunteer section -->
+                <ContentView IsVisible="{Binding IsVolunteerVisible}">
+                    <VerticalStackLayout Spacing="20" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Image Source="volunteer.png" WidthRequest="100" HeightRequest="100" HorizontalOptions="Center"/>
+                        <Button
+                            Text="Open Volunteer Form"
+                            FontSize="18"
+                            HorizontalOptions="Center"
+                            Command="{Binding OpenVolunteerCommand}"/>
+                    </VerticalStackLayout>
+                </ContentView>
+            </Grid>
+        </ScrollView>
+    </Grid>
+</ContentPage>

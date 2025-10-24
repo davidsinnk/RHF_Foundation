@@ -64,6 +64,8 @@ public partial class MainViewModel : ObservableObject
     public IAsyncRelayCommand GoAnnouncementsCommand { get; }
     public IAsyncRelayCommand CheckInCommand { get; }
 
+    public IAsyncRelayCommand TestPagePopup { get; }
+
 
     //Navigation, Notification, Geofence services
     private readonly IGeofenceService _geofence;
@@ -91,6 +93,9 @@ public partial class MainViewModel : ObservableObject
         GoActivitiesCommand = new AsyncRelayCommand(async () => await Shell.Current.GoToAsync("activities"));
         GoAnnouncementsCommand = new AsyncRelayCommand(async () => await Shell.Current.GoToAsync("announcements"));
         CheckInCommand = new AsyncRelayCommand(OpenCheckInPopupAsync);
+
+
+        TestPagePopup = new AsyncRelayCommand(async () => await TestPagePopupAsync());
 
 
         // Sample data
@@ -127,6 +132,23 @@ public partial class MainViewModel : ObservableObject
 
     }
 
+
+    private async Task TestPagePopupAsync()
+    {
+
+        //var popup = new CheckInPopup();
+        //await Shell.Current.CurrentPage.ShowPopupAsync(popup);
+
+        Dictionary<string, object> parameters = new Dictionary<string, object>
+        {
+            { "userName", "Dave" }
+        };
+
+        await _nav.GoToAsync("getinvolved", parameters);
+
+    }
+
+
     private async Task ScanQrAsync()
     {
         // TODO: Integrate ZXing.Net.MAUI or CameraView for scanning
@@ -153,15 +175,6 @@ public partial class MainViewModel : ObservableObject
 
     private void CreateEventDataForDemo()
     {
-        Events.Add(new EventItem
-        {
-            MonthAbbrev = "OCT",
-            EventName = "Spooky Movie Night",
-            EventDate = "Oct 08, 2025",
-            TimeRange = "05:00 PM – 9:00 PM",
-            LinkText = "View event details",
-            LinkUrl = "https://rhfnow.org/event/outdoor-movie-night/"
-        });
 
         Events.Add(new EventItem
         {
@@ -176,6 +189,16 @@ public partial class MainViewModel : ObservableObject
         Events.Add(new EventItem
         {
             MonthAbbrev = "DEC",
+            EventName = "RHF App Launch",
+            EventDate = "DEC 01, 2025",
+            TimeRange = "All Day",
+            LinkText = "View event details",
+            LinkUrl = "https://example.com/event/789"
+        });
+
+        Events.Add(new EventItem
+        {
+            MonthAbbrev = "DEC",
             EventName = "B1G Championship Night",
             EventDate = "DEC 06, 2025",
             TimeRange = "6:00 PM – 10:00 PM",
@@ -183,6 +206,15 @@ public partial class MainViewModel : ObservableObject
             LinkUrl = "https://example.com/event/789"
         });
 
+        Events.Add(new EventItem
+        {
+            MonthAbbrev = "May",
+            EventName = "Towel Day",
+            EventDate = "May 25, 2026",
+            TimeRange = "All Day",
+            LinkText = "Don't Panic! and click here for details",
+            LinkUrl = "https://en.wikipedia.org/wiki/Towel_Day"
+        });
 
     }
 

@@ -1,8 +1,144 @@
-<ContentPage x:Class="RHF_Foundation.Views.ActivitiesPage"
-xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
-    <VerticalStackLayout Padding="16" Spacing="8">
-        <Label Text="Activities" FontSize="24" FontAttributes="Bold"/>
-        <Label Text="Archery, Canoeing, Crafts, Hikes…"/>
-    </VerticalStackLayout>
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="RHF_Foundation.Views.ActivitiesPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RHF_Foundation.ViewModels"
+    Title="Get Involved">
+
+
+
+ <Grid RowDefinitions="Auto,Auto,*" Padding="0">
+
+        <!-- Header label -->
+        <Label
+            Text="ACTIVITES"
+            FontAttributes="Bold"
+            FontSize="32"
+            HorizontalOptions="Center"
+            TextColor="{StaticResource RicksOrange}"
+            Margin="0,20,0,10"/>
+
+        <!-- Top bar "tabs" -->
+        <Grid
+            Grid.Row="1"
+            BackgroundColor="#F7F7F7"
+            Padding="0,8"
+            RowSpacing="0"
+            ColumnDefinitions="*,*">
+
+            <!-- Events tab button -->
+            <Border
+                x:Name="EventsTab"
+                StrokeThickness="0"
+                Padding="16,10"
+                Grid.Column="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Optional icon above text -->
+                    <Image
+                        Source="event.png"
+                        HeightRequest="20"
+                        WidthRequest="20"
+                        HorizontalOptions="Center"
+                        Margin="0,0,0,4"/>
+
+                    <Label
+                        Grid.Row="1"
+                        Text="Events"
+                        FontAttributes="Bold"
+                        HorizontalTextAlignment="Center"/>
+                </Grid>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding SelectEventsCommand}"/>
+                </Border.GestureRecognizers>
+                <Border.Triggers>
+                    <!-- Highlight when selected -->
+                    <DataTrigger TargetType="Border" Binding="{Binding IsEventsVisible}" Value="True">
+                        <Setter Property="BackgroundColor" Value="White"/>
+                        <Setter Property="Stroke" Value="{StaticResource RicksOrange}"/>
+                        <Setter Property="StrokeThickness" Value="3"/>
+                    </DataTrigger>
+                    <DataTrigger TargetType="Border" Binding="{Binding IsEventsVisible}" Value="False">
+                        <Setter Property="BackgroundColor" Value="{StaticResource RicksOrange}"/>
+                        <Setter Property="StrokeThickness" Value="0"/>
+                    </DataTrigger>
+                </Border.Triggers>
+            </Border>
+
+            <!-- Programs tab button -->
+            <Border
+                x:Name="ProgramsTab"
+                StrokeThickness="0"
+                Padding="16,10"
+                Grid.Column="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Image
+                        Source="program.png"
+                        HeightRequest="20"
+                        WidthRequest="20"
+                        HorizontalOptions="Center"
+                        Margin="0,0,0,4"/>
+
+                    <Label
+                        Grid.Row="1"
+                        Text="Programs"
+                        FontAttributes="Bold"
+                        HorizontalTextAlignment="Center"/>
+                </Grid>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding SelectProgramsCommand}"/>
+                </Border.GestureRecognizers>
+                <Border.Triggers>
+                    <DataTrigger TargetType="Border" Binding="{Binding IsPRogramsVisible}" Value="True">
+                        <Setter Property="BackgroundColor" Value="White"/>
+                        <Setter Property="Stroke" Value="{StaticResource RicksOrange}"/>
+                        <Setter Property="StrokeThickness" Value="2"/>
+                    </DataTrigger>
+                    <DataTrigger TargetType="Border" Binding="{Binding IsProgramsVisible}" Value="False">
+                        <Setter Property="BackgroundColor" Value="{StaticResource RicksOrange}"/>
+                        <Setter Property="StrokeThickness" Value="0"/>
+                    </DataTrigger>
+                </Border.Triggers>
+            </Border>
+        </Grid>
+
+        <!-- Body -->
+        <ScrollView Grid.Row="2" Padding="24">
+            <Grid>
+                <!-- Events section -->
+                <ContentView IsVisible="{Binding IsEventsVisible}">
+                    <VerticalStackLayout Spacing="20" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Image Source="event.png" WidthRequest="100" HeightRequest="100" HorizontalOptions="Center"/>
+                        <Button
+                            Text="Open Events Website"
+                            FontSize="18"
+                            HorizontalOptions="Center"
+                            Command="{Binding OpenEventsCommand}"/>
+                    </VerticalStackLayout>
+                </ContentView>
+
+                <!-- Programs section -->
+                <ContentView IsVisible="{Binding IsProgramsVisible}">
+                    <VerticalStackLayout Spacing="20" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Image Source="program.png" WidthRequest="100" HeightRequest="100" HorizontalOptions="Center"/>
+                        <Button
+                            Text="Open Programs Website"
+                            FontSize="18"
+                            HorizontalOptions="Center"
+                            Command="{Binding OpenProgramsCommand}"/>
+                    </VerticalStackLayout>
+                </ContentView>
+            </Grid>
+        </ScrollView>
+    </Grid>
 </ContentPage>

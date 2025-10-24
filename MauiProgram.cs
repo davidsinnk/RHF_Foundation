@@ -45,6 +45,8 @@ var builder = MauiApp.CreateBuilder();
         // ViewModels
         builder.Services.AddTransient<MainViewModel>();
         builder.Services.AddTransient<CheckInViewModel>();
+        builder.Services.AddTransient<GetInvolvedViewModel>();
+        builder.Services.AddTransient<ActivitesViewModel>();
 
 
         // Views
