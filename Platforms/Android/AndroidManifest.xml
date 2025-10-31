@@ -13,12 +13,19 @@
   <!-- Notifications (Android 13+) -->
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+  <!-- Wake lock for background processing -->
+  <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+  <!-- Foreground service for location (if needed) -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+
 
   <application>
-    <receiver android:name=".Geofencing.GeofenceBroadcastReceiver" android:exported="true" />
-    <receiver android:name=".Geofencing.BootCompletedReceiver" android:enabled="true" android:exported="true">
-    <intent-filter><action android:name="android.intent.action.BOOT_COMPLETED" /></intent-filter>
-    </receiver>
+    <!-- Geofence broadcast receiver for background notifications -->
+    <receiver android:name="rhf_foundation.platforms.android.GeofenceBroadcastReceiver" 
+              android:exported="true" 
+              android:enabled="true" />
   </application>
 
   <!-- No <application> block here; MAUI will provide it and inject android:debuggable in Debug -->

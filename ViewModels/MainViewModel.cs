@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RHF_Foundation.Views.Popups;
@@ -45,11 +47,6 @@ public partial class MainViewModel : ObservableObject
 
     private ICheckInAPIService _checkInAPIService;
 
-
-    // Used for Testing Geofencing
-    [ObservableProperty]
-    private string statusText = "Roaming";
-
     // TODO: change to your target coordinates
     private const double TargetLat = 35.02637282158545;
     private const double TargetLon = -78.9730348411858;
@@ -94,7 +91,6 @@ public partial class MainViewModel : ObservableObject
         GoAnnouncementsCommand = new AsyncRelayCommand(async () => await Shell.Current.GoToAsync("announcements"));
         CheckInCommand = new AsyncRelayCommand(OpenCheckInPopupAsync);
 
-
         TestPagePopup = new AsyncRelayCommand(async () => await TestPagePopupAsync());
 
 
@@ -112,8 +108,8 @@ public partial class MainViewModel : ObservableObject
 
         StartGeofenceMonitoring();
 
-
-        StartGeofenceAsync();
+        // Auto-start geofencing on app launch
+        _ = Task.Run(async () => await AutoStartGeofencingAsync());
 
     }
 
@@ -235,7 +231,6 @@ public partial class MainViewModel : ObservableObject
             try
             {
                 await _checkInAPIService.CheckInArrival();
-                StatusText = "You are at Rick's Plase";
                 await _nav.GoToAsync("checkin", new Dictionary<string, object> { ["placeId"] = m.Value });
             }
             finally
@@ -251,7 +246,6 @@ public partial class MainViewModel : ObservableObject
         WeakReferenceMessenger.Default.Register<DepartedMessage>(this, (r, m) =>
         {
             _lastArrivalPlaceId = null;   // allow next arrival to navigate again
-            StatusText = "Outside 300m.";
             _notify.ShowAsync("Leaving", "You have left the geofenced area.");
         });
 
@@ -270,7 +264,6 @@ public partial class MainViewModel : ObservableObject
 #endif
 
         var ok = await _geofence.StartMonitoringAsync(TargetLat, TargetLon, RadiusMeters);
-        StatusText = ok ? $"Geofence active. {ok}" : "Could not start geofence (permissions?).";
 
         if (ok)
         {
@@ -280,7 +273,6 @@ public partial class MainViewModel : ObservableObject
         }
 
         //await _notify.ShowAsync("Test Notification", "Geofence monitoring started.");
-        StatusText = $"You are Monitoring Geofence.";
 
 
     }
@@ -297,7 +289,7 @@ public partial class MainViewModel : ObservableObject
 
         if (fg != PermissionStatus.Granted)
         {
-            await App.Current!.MainPage!.DisplayAlert(
+            await Application.Current!.Windows[0].Page!.DisplayAlert(
                 "Permission needed",
                 "Location permission is required to monitor your location.",
                 "OK");
@@ -314,7 +306,7 @@ public partial class MainViewModel : ObservableObject
 
             if (bg != PermissionStatus.Granted)
             {
-                await App.Current!.MainPage!.DisplayAlert(
+                await Application.Current!.Windows[0].Page!.DisplayAlert(
                     "Background Location Required",
                     "Please allow 'Always' location in Settings so we can detect arrival.",
                     "Open Settings");
@@ -327,7 +319,7 @@ public partial class MainViewModel : ObservableObject
         var notificationAllowed = await _notify.RequestPermissionAsync();
         if (!notificationAllowed)
         {
-            await App.Current!.MainPage!.DisplayAlert(
+            await Application.Current!.Windows[0].Page!.DisplayAlert(
                 "Notifications blocked",
                 "Please enable notifications so we can alert you when you arrive.",
                 "Open Settings");
@@ -335,7 +327,7 @@ public partial class MainViewModel : ObservableObject
         }
 
         // 4) Register geofence with platform geofencing system for background monitoring
-        await YOUR_NAMESPACE.Platforms.Android.Geofencing.GeofenceRegistrar_Android
+        await RHF_Foundation.Platforms.Android.GeofenceRegistrar_Android
             .RegisterAsync(global::Android.App.Application.Context,
                     TargetLat, TargetLon, (float)RadiusMeters,
                     "hq-300m");
@@ -344,6 +336,212 @@ public partial class MainViewModel : ObservableObject
         // Start fence monitoring
         var ok = await _geofence.StartMonitoringAsync(TargetLat, TargetLon, RadiusMeters);
         System.Diagnostics.Debug.WriteLine($"[VM] StartMonitoringAsync returned {ok}");
+    }
+
+    private async Task AutoStartGeofencingAsync()
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("[VM] AutoStartGeofencingAsync() - Starting automatic permission requests and geofencing");
+            
+            // Small delay to ensure UI is ready
+            await Task.Delay(2000);
+            
+            // Check if permissions are already granted
+            var locationGranted = await CheckLocationPermissionsAsync();
+            var notificationGranted = await _notify.RequestPermissionAsync();
+            
+            System.Diagnostics.Debug.WriteLine($"[VM] Initial permission check - Location: {locationGranted}, Notifications: {notificationGranted}");
+
+            if (!locationGranted || !notificationGranted)
+            {
+                // Show instructions to user for manual setup
+                await ShowPermissionInstructionsAsync();
+            }
+
+            if (locationGranted)
+            {
+                // Start geofencing automatically
+                await StartGeofenceAsync();
+                System.Diagnostics.Debug.WriteLine("[VM] Auto-geofencing started successfully");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[VM] Cannot start geofencing - location permissions denied");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VM] AutoStartGeofencingAsync error: {ex.Message}");
+        }
+    }
+
+    private async Task<bool> CheckLocationPermissionsAsync()
+    {
+        try
+        {
+            var fg = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+            
+#if ANDROID
+            if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.Q)
+            {
+                var bg = await Permissions.CheckStatusAsync<Permissions.LocationAlways>();
+                return fg == PermissionStatus.Granted && bg == PermissionStatus.Granted;
+            }
+#endif
+            return fg == PermissionStatus.Granted;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VM] CheckLocationPermissionsAsync error: {ex.Message}");
+            return false;
+        }
+    }
+
+    private async Task ShowPermissionInstructionsAsync()
+    {
+        try
+        {
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                try
+                {
+                    var currentPage = Application.Current?.Windows?.FirstOrDefault()?.Page;
+                    if (currentPage != null)
+                    {
+                        var result = await currentPage.DisplayAlert(
+                            "Setup Required",
+                            "For geofencing to work properly, please:\n\n" +
+                            "1. Enable Location: Set to 'Allow all the time'\n" +
+                            "2. Enable Notifications\n\n" +
+                            "Tap 'Open Settings' to configure these permissions now.",
+                            "Open Settings",
+                            "Later");
+                        
+                        if (result == true)
+                        {
+                            Microsoft.Maui.ApplicationModel.AppInfo.ShowSettingsUI();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[VM] Error showing permission instructions: {ex.Message}");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VM] ShowPermissionInstructionsAsync error: {ex.Message}");
+        }
+    }
+
+    private async Task<bool> RequestLocationPermissionsAsync()
+    {
+        try
+        {
+            // Check if we've already requested permissions and been denied
+            var prefsKey = "LocationPermissionsRequested";
+            var alreadyRequested = Preferences.Get(prefsKey, false);
+            
+            // 1) Foreground location
+            var fg = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+            if (fg != PermissionStatus.Granted)
+            {
+                System.Diagnostics.Debug.WriteLine("[VM] Requesting foreground location permission");
+                fg = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+                
+                // Save that we've requested permissions
+                Preferences.Set(prefsKey, true);
+            }
+
+            if (fg != PermissionStatus.Granted)
+            {
+                System.Diagnostics.Debug.WriteLine("[VM] Foreground location permission denied");
+                
+                // Show alert for user to manually enable in settings
+                if (alreadyRequested)
+                {
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                    {
+                        try
+                        {
+                            var currentPage = Application.Current?.Windows?.FirstOrDefault()?.Page;
+                            if (currentPage != null)
+                            {
+                                var result = await currentPage.DisplayAlert(
+                                    "Location Permission Required",
+                                    "Location permission is required for geofencing. Please enable 'Allow all the time' in Settings > Apps > RHF Foundation > Permissions > Location.",
+                                    "Open Settings",
+                                    "Cancel");
+                                
+                                if (result == true)
+                                {
+                                    Microsoft.Maui.ApplicationModel.AppInfo.ShowSettingsUI();
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[VM] Error showing location permission alert: {ex.Message}");
+                        }
+                    });
+                }
+                return false;
+            }
+
+#if ANDROID
+            // 2) Background location (Android 10+/API29+)
+            if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.Q)
+            {
+                var bg = await Permissions.CheckStatusAsync<Permissions.LocationAlways>();
+                if (bg != PermissionStatus.Granted)
+                {
+                    System.Diagnostics.Debug.WriteLine("[VM] Requesting background location permission");
+                    bg = await Permissions.RequestAsync<Permissions.LocationAlways>();
+                }
+
+                if (bg != PermissionStatus.Granted)
+                {
+                    System.Diagnostics.Debug.WriteLine("[VM] Background location permission denied");
+                    
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                    {
+                        try
+                        {
+                            var currentPage = Application.Current?.Windows?.FirstOrDefault()?.Page;
+                            if (currentPage != null)
+                            {
+                                var result = await currentPage.DisplayAlert(
+                                    "Background Location Required",
+                                    "For geofencing to work when the app is closed, please enable 'Allow all the time' for location access in Settings.",
+                                    "Open Settings",
+                                    "Cancel");
+                                
+                                if (result == true)
+                                {
+                                    Microsoft.Maui.ApplicationModel.AppInfo.ShowSettingsUI();
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[VM] Error showing background location permission alert: {ex.Message}");
+                        }
+                    });
+                    return false;
+                }
+            }
+#endif
+
+            System.Diagnostics.Debug.WriteLine("[VM] All location permissions granted");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[VM] RequestLocationPermissionsAsync error: {ex.Message}");
+            return false;
+        }
     }
 
 }

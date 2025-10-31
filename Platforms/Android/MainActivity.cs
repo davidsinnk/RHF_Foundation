@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using RHF_Foundation.Services;
 using Microsoft.Maui;
 using RHF_Foundation.Services.Interfaces;
+using System.Diagnostics.CodeAnalysis;
 
 namespace RHF_Foundation.Platforms.Android;
 
@@ -23,6 +24,7 @@ namespace RHF_Foundation.Platforms.Android;
 public class MainActivity : MauiAppCompatActivity
 {
     //These are used to determine if app is in foreground or background
+    public static bool IsForeground { get; set; }
   
     protected override void OnStart() { base.OnStart(); IsForeground = true; }
     protected override void OnStop()  { IsForeground = false; base.OnStop(); }
@@ -46,8 +48,11 @@ public class MainActivity : MauiAppCompatActivity
     }
 
 
+    [SuppressMessage("Interoperability", "CA1422:Validate platform compatibility")]
     void RequestAllRuntimePermissions()
     {
+        if ((int)Build.VERSION.SdkInt < 23) return; // No runtime permissions needed before API 23
+
         var needed = new List<string>();
 
         if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) != Permission.Granted)
@@ -73,12 +78,36 @@ public class MainActivity : MauiAppCompatActivity
         var route = intent?.GetStringExtra("deeplink");
         if (string.IsNullOrWhiteSpace(route)) return;
 
-        var nav = MauiApplication.Current.Services.GetService<INavigationService>();
-        var placeId = ParsePlaceId(route);
-        _ = nav?.GoToAsync("checkin", new Dictionary<string, object>
+        // Delay navigation to ensure MAUI is fully initialized
+        MainThread.BeginInvokeOnMainThread(async () =>
         {
-            { "placeId", placeId }
-        } );
+            // Wait a bit for the app to be ready
+            await Task.Delay(500);
+            
+            try
+            {
+                var nav = IPlatformApplication.Current?.Services?.GetService<INavigationService>();
+                if (nav == null) return;
+
+                var placeId = ParsePlaceId(route);
+                if (placeId != null)
+                {
+                    await nav.GoToAsync("checkin", new Dictionary<string, object>
+                    {
+                        { "placeId", placeId }
+                    });
+                }
+                else
+                {
+                    // If no placeId, just navigate to checkin page
+                    await nav.GoToAsync("checkin");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Deep link navigation failed: {ex.Message}");
+            }
+        });
     }
 
     static string? ParsePlaceId(string route)

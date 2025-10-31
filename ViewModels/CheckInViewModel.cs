@@ -3,15 +3,15 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RHF_Foundation.Services.Interfaces;
 using RHF_Foundation.Services.APIs;
-
+using RHF_Foundation.Models;
 
 namespace RHF_Foundation.ViewModels;
-
 
 public partial class CheckInViewModel : ObservableObject, IQueryAttributable
 {
     private readonly IAlertService _alerts;
     private readonly INavigationService _nav;
+    private readonly TrackingState _trackingState;
 
     private ICheckInAPIService _api;
 
@@ -27,15 +27,14 @@ public partial class CheckInViewModel : ObservableObject, IQueryAttributable
     [ObservableProperty]
     private int selectedChildren;
 
-
     [ObservableProperty]
     private string? placeId;
 
-
-    public CheckInViewModel(IAlertService alerts, INavigationService nav)
+    public CheckInViewModel(IAlertService alerts, INavigationService nav, TrackingState trackingState)
     {
         _alerts = alerts;
         _nav = nav;
+        _trackingState = trackingState;
 
         //yes yes... I know this is tightly couples and need to be refed to the constructor or DI service
         _api = new CheckInAPIService();
@@ -51,7 +50,6 @@ public partial class CheckInViewModel : ObservableObject, IQueryAttributable
         SelectedAdults = 0;
         SelectedChildren = 0;
     }
-
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {

@@ -50,32 +50,55 @@ public sealed class GeofenceService_Android : Java.Lang.Object, IGeofenceService
 
     public async Task<bool> StartMonitoringAsync(double latitude, double longitude, double radiusMeters)
     {
+        System.Diagnostics.Debug.WriteLine($"[ANDROID][Geofence] StartMonitoringAsync called: {latitude}, {longitude}, radius {radiusMeters}m");
+        
         _fenceLat = latitude;
         _fenceLon = longitude;
         _fenceRadiusMeters = radiusMeters;
         _active = true;
+        _wasInside = false; // Reset the state when starting monitoring
 
         try
         {
+            // Ensure location registration happens on main thread
+            var success = await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                try
+                {
 #pragma warning disable CA1422
-            // Fine (GPS)
-            _locationManager?.RequestLocationUpdates(
-                LocationManager.GpsProvider,
-                2000L,
-                1f,
-                _listener);
+                    // Fine (GPS)
+                    _locationManager?.RequestLocationUpdates(
+                        LocationManager.GpsProvider,
+                        2000L,
+                        1f,
+                        _listener);
+                    System.Diagnostics.Debug.WriteLine($"[ANDROID][Geofence] GPS provider requested");
 
-            // Coarse (Network) — helps indoors/emulators
-            _locationManager?.RequestLocationUpdates(
-                LocationManager.NetworkProvider,
-                2000L,
-                1f,
-                _listener);
+                    // Coarse (Network) — helps indoors/emulators
+                    _locationManager?.RequestLocationUpdates(
+                        LocationManager.NetworkProvider,
+                        2000L,
+                        1f,
+                        _listener);
+                    System.Diagnostics.Debug.WriteLine($"[ANDROID][Geofence] Network provider requested");
 #pragma warning restore CA1422
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ANDROID][Geofence] RequestLocationUpdates failed: {ex}");
+                    return false;
+                }
+            });
+
+            if (!success)
+            {
+                return false;
+            }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[ANDROID][Geofence] RequestLocationUpdates failed: {ex}");
+            System.Diagnostics.Debug.WriteLine($"[ANDROID][Geofence] StartMonitoringAsync failed: {ex}");
             return false;
         }
 
@@ -92,8 +115,20 @@ public sealed class GeofenceService_Android : Java.Lang.Object, IGeofenceService
 
     private void HandleNewLocation(global::Android.Locations.Location loc)
     {
-        if (!_active || loc is null) return;
+        System.Diagnostics.Debug.WriteLine($"[ANDROID][Geofence] OnLocationChanged: {loc.Latitude}, {loc.Longitude}");
+        
+        if (!_active || loc is null) 
+        {
+            System.Diagnostics.Debug.WriteLine($"[ANDROID][Geofence] Skipping - Active: {_active}, Location null: {loc is null}");
+            return;
+        }
 
+        // Dispatch to main thread to avoid handler errors
+        MainThread.BeginInvokeOnMainThread(() => ProcessLocationOnMainThread(loc));
+    }
+
+    private void ProcessLocationOnMainThread(global::Android.Locations.Location loc)
+    {
         _tracking.CurrentLatitude  = loc.Latitude;
         _tracking.CurrentLongitude = loc.Longitude;
 
@@ -101,20 +136,33 @@ public sealed class GeofenceService_Android : Java.Lang.Object, IGeofenceService
         var inside = distMeters <= _fenceRadiusMeters;
         _tracking.IsInsideFence = inside;
 
-        // Edge: outside -> inside
+        System.Diagnostics.Debug.WriteLine($"[ANDROID][Geofence] Current: {loc.Latitude:F8}, {loc.Longitude:F8}");
+        System.Diagnostics.Debug.WriteLine($"[ANDROID][Geofence] Target:  {_fenceLat:F8}, {_fenceLon:F8}");
+        System.Diagnostics.Debug.WriteLine($"[ANDROID][Geofence] Distance: {distMeters:F2}m, Radius: {_fenceRadiusMeters}m, Inside: {inside}, Was Inside: {_wasInside}");
+
+        // Edge: outside -> inside (ENTERING)
         if (inside && !_wasInside)
         {
+            System.Diagnostics.Debug.WriteLine($"[ANDROID][Geofence] ENTERING GEOFENCE - Showing notification");
             // Always notify (covers background)
             _ = _notifier.ShowAsync("Arrived", "Tap to Check In", route: $"checkin?placeId={_placeId}");
 
             // Foreground? Navigate immediately
             if (MainActivity.IsForeground)
             {
+                System.Diagnostics.Debug.WriteLine($"[ANDROID][Geofence] App is foreground - navigating");
                 _ = _nav.GoToAsync(_placeId, new Dictionary<string, object>
                 {
                     { "placeId", _placeId }
                 } );
             }
+        }
+        // Edge: inside -> outside (EXITING)
+        else if (!inside && _wasInside)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ANDROID][Geofence] EXITING GEOFENCE");
+            // Optional: Show exit notification or take other action
+            // _ = _notifier.ShowAsync("Left Area", "You've left the geofence area");
         }
 
         _wasInside = inside;
@@ -152,7 +200,7 @@ public sealed class GeofenceService_Android : Java.Lang.Object, IGeofenceService
             _push(location);
         }
 
-        [Obsolete] public void OnStatusChanged(string provider, [global::Android.Runtime.GeneratedEnum] Availability status, Bundle extras) { }
+        [Obsolete] public void OnStatusChanged(string? provider, [global::Android.Runtime.GeneratedEnum] Availability status, Bundle? extras) { }
         public void OnProviderEnabled(string provider) { }
         public void OnProviderDisabled(string provider) { }
     }

@@ -11,25 +11,39 @@ public class GeofenceBroadcastReceiver : BroadcastReceiver
 {
     public override void OnReceive(Context? context, Intent? intent)
     {
-        if (context is null || intent is null) return;
+        System.Diagnostics.Debug.WriteLine($"[ANDROID][GeofenceBroadcastReceiver] OnReceive called");
+        
+        if (context is null || intent is null) 
+        {
+            System.Diagnostics.Debug.WriteLine($"[ANDROID][GeofenceBroadcastReceiver] Context or intent is null");
+            return;
+        }
 
         var evt = GeofencingEvent.FromIntent(intent);
-        if (evt == null || evt.HasError) return;
+        if (evt == null || evt.HasError) 
+        {
+            System.Diagnostics.Debug.WriteLine($"[ANDROID][GeofenceBroadcastReceiver] GeofencingEvent error or null. HasError: {evt?.HasError}, ErrorCode: {evt?.ErrorCode}");
+            return;
+        }
+
+        System.Diagnostics.Debug.WriteLine($"[ANDROID][GeofenceBroadcastReceiver] GeofenceTransition: {evt.GeofenceTransition}");
 
         if (evt.GeofenceTransition == Geofence.GeofenceTransitionEnter)
         {
+            System.Diagnostics.Debug.WriteLine($"[ANDROID][GeofenceBroadcastReceiver] ENTER transition detected - showing background notification");
+            
             const string placeId = "hq-300m";
             const string channelId = "geofence_channel_id";
 
             // If app is in foreground, navigate immediately
             if (MainActivity.IsForeground)
             {
-                var nav = MauiApplication.Current.Services.GetService<LocationService.Services.INavigationService>();
-                _ = nav?.GoToCheckInAsync(placeId);
+                var nav = IPlatformApplication.Current?.Services?.GetService<RHF_Foundation.Services.Interfaces.INavigationService>();
+                _ = nav?.GoToAsync(placeId);
             }
 
             // Always post a heads-up notification (covers background case)
-            if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.O)
+            if (global::Android.OS.Build.VERSION.SdkInt >= global::Android.OS.BuildVersionCodes.O)
             {
                 var nm = (NotificationManager)context.GetSystemService(Context.NotificationService)!;
                 nm.CreateNotificationChannel(new NotificationChannel(channelId, "Geofence Alerts", NotificationImportance.High));
@@ -49,7 +63,7 @@ public class GeofenceBroadcastReceiver : BroadcastReceiver
                 .SetAutoCancel(true)
                 .SetContentIntent(pending);
 
-            if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.O)
+            if (global::Android.OS.Build.VERSION.SdkInt >= global::Android.OS.BuildVersionCodes.O)
                 builder.SetChannelId(channelId);
 
             var mgr = (NotificationManager)context.GetSystemService(Context.NotificationService)!;
