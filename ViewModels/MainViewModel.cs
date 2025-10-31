@@ -26,7 +26,7 @@ namespace RHF_Foundation.ViewModels;
 public partial class MainViewModel : ObservableObject
 {
 
-//Observable properties used for the View
+    //Observable properties used for the View
     [ObservableProperty]
     public string camperName = "RHF_Foundation Family";
 
@@ -34,7 +34,7 @@ public partial class MainViewModel : ObservableObject
     private DateTime today = DateTime.Today;
 
     [ObservableProperty]
-    private String temperature= "80 °F ";
+    private String temperature = "80 °F ";
     [ObservableProperty]
     private String weatherCondition = "Sunny";
     [ObservableProperty]
@@ -46,17 +46,17 @@ public partial class MainViewModel : ObservableObject
     private ICheckInAPIService _checkInAPIService;
 
 
-// Used for Testing Geofencing
+    // Used for Testing Geofencing
     [ObservableProperty]
     private string statusText = "Roaming";
 
-        // TODO: change to your target coordinates
+    // TODO: change to your target coordinates
     private const double TargetLat = 35.02637282158545;
     private const double TargetLon = -78.9730348411858;
     private const double RadiusMeters = 300;
 
 
-//Buttons Commands
+    //Buttons Commands
     public IAsyncRelayCommand GoScheduleCommand { get; }
     public IAsyncRelayCommand GoMapCommand { get; }
     public IAsyncRelayCommand GoMealsCommand { get; }
@@ -248,20 +248,27 @@ public partial class MainViewModel : ObservableObject
         });
 
 
-        WeakReferenceMessenger.Default.Register<DepartedMessage>(this, (r, m) =>        
+        WeakReferenceMessenger.Default.Register<DepartedMessage>(this, (r, m) =>
         {
             _lastArrivalPlaceId = null;   // allow next arrival to navigate again
             StatusText = "Outside 300m.";
-             _notify.ShowAsync("Leaving", "You have left the geofenced area.");
+            _notify.ShowAsync("Leaving", "You have left the geofenced area.");
         });
 
-        
+
     }
 
     [RelayCommand]
     private async Task StartGeofenceAsync()
     {
         var perm = await _notify.RequestPermissionAsync(); // notifications (Android 13+)
+
+#if ANDROID
+
+        await BeginMonitoringAsync();
+
+#endif
+
         var ok = await _geofence.StartMonitoringAsync(TargetLat, TargetLon, RadiusMeters);
         StatusText = ok ? $"Geofence active. {ok}" : "Could not start geofence (permissions?).";
 
@@ -274,17 +281,81 @@ public partial class MainViewModel : ObservableObject
 
         //await _notify.ShowAsync("Test Notification", "Geofence monitoring started.");
         StatusText = $"You are Monitoring Geofence.";
+
+
+    }
+
+    [RelayCommand]
+    private async Task BeginMonitoringAsync()
+    {
+        System.Diagnostics.Debug.WriteLine("[VM] BeginMonitoringAsync() called");
+
+        // 1) Foreground location
+        var fg = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+        if (fg != PermissionStatus.Granted)
+            fg = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+
+        if (fg != PermissionStatus.Granted)
+        {
+            await App.Current!.MainPage!.DisplayAlert(
+                "Permission needed",
+                "Location permission is required to monitor your location.",
+                "OK");
+            return;
+        }
+
+#if ANDROID
+        // 2) Background location (Android 10+/API29+)
+        if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.Q)
+        {
+            var bg = await Permissions.CheckStatusAsync<Permissions.LocationAlways>();
+            if (bg != PermissionStatus.Granted)
+                bg = await Permissions.RequestAsync<Permissions.LocationAlways>();
+
+            if (bg != PermissionStatus.Granted)
+            {
+                await App.Current!.MainPage!.DisplayAlert(
+                    "Background Location Required",
+                    "Please allow 'Always' location in Settings so we can detect arrival.",
+                    "Open Settings");
+                Microsoft.Maui.ApplicationModel.AppInfo.ShowSettingsUI();
+                return;
+            }
+        }
+
+        // 3) Notifications (Android 13+/API33+)
+        var notificationAllowed = await _notify.RequestPermissionAsync();
+        if (!notificationAllowed)
+        {
+            await App.Current!.MainPage!.DisplayAlert(
+                "Notifications blocked",
+                "Please enable notifications so we can alert you when you arrive.",
+                "Open Settings");
+            Microsoft.Maui.ApplicationModel.AppInfo.ShowSettingsUI();
+        }
+
+        // 4) Register geofence with platform geofencing system for background monitoring
+        await YOUR_NAMESPACE.Platforms.Android.Geofencing.GeofenceRegistrar_Android
+            .RegisterAsync(global::Android.App.Application.Context,
+                    TargetLat, TargetLon, (float)RadiusMeters,
+                    "hq-300m");
+#endif
+
+        // Start fence monitoring
+        var ok = await _geofence.StartMonitoringAsync(TargetLat, TargetLon, RadiusMeters);
+        System.Diagnostics.Debug.WriteLine($"[VM] StartMonitoringAsync returned {ok}");
     }
 
 }
 
 
-public record CampEvent(string Title, string Location, TimeSpan Start, TimeSpan End)
-{
-public string TimeRange => $"{Start:h\\:mm}–{End:h\\:mm}";
-}
+    public record CampEvent(string Title, string Location, TimeSpan Start, TimeSpan End)
+    {
+        public string TimeRange => $"{Start:h\\:mm}–{End:h\\:mm}";
+    }
 
-public record Announcement(string Title, string Body);
+    public record Announcement(string Title, string Body);
+
 
 
 

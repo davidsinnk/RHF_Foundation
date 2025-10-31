@@ -1,7 +1,7 @@
 ﻿using Android.App;
 using Android.Runtime;
 
-namespace RHF_Foundation;
+namespace RHF_Foundation.Platforms.Android;
 
 [Application]
 public class MainApplication : MauiApplication

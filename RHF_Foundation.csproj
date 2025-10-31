@@ -13,6 +13,9 @@
 		either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
 		<!-- For example: <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
 
+
+
+
 		<OutputType>Exe</OutputType>
 		<RootNamespace>RHF_Foundation</RootNamespace>
 		<UseMaui>true</UseMaui>
@@ -28,7 +31,7 @@
 		<ApplicationId>com.companyname.rhf_foundation</ApplicationId>
 
 		<!-- Versions -->
-		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<ApplicationDisplayVersion>1.2</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
@@ -47,14 +50,14 @@
 		ForegroundFile="Resources\AppIcon\appiconfg.svg" 
 		
 		-->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg"   Color="White" />
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" Color="White" />
 
 		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\Splash\splash.svg"  Color="#E34E26" BaseSize="128,128" />
+		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#E34E26" BaseSize="128,128" />
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
-		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" Color="White"/>
+		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" Color="White" />
 		
 		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*" />
@@ -70,6 +73,9 @@
 			<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.90" />
 			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
 		</ItemGroup>
+
+
+
 
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0-ios'">
 	<ApplicationId>org.rhfnow.rhffoundation</ApplicationId>

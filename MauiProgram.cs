@@ -7,6 +7,7 @@ using RHF_Foundation.Services;
 using RHF_Foundation.Services.Navigation;
 using RHF_Foundation.ViewModels;
 using RHF_Foundation.Views;
+using RHF_Foundation.Models;
 
 namespace RHF_Foundation;
 
@@ -32,6 +33,7 @@ var builder = MauiApp.CreateBuilder();
         // Services
         builder.Services.AddSingleton<INavigationService, NavigationService>();
         builder.Services.AddSingleton<IAlertService, AlertService>();
+        builder.Services.AddSingleton<TrackingState>();
 
         #if ANDROID
                 builder.Services.AddSingleton<IGeofenceService, Platforms.Android.GeofenceService_Android>();
@@ -40,6 +42,8 @@ var builder = MauiApp.CreateBuilder();
                 builder.Services.AddSingleton<IGeofenceService, Platforms.iOS.GeofenceService_iOS>();
                 builder.Services.AddSingleton<INotificationService, Platforms.iOS.NotificationService_iOS>();
         #endif
+
+        
 
 
         // ViewModels
