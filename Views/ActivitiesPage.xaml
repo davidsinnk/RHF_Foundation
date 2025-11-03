@@ -8,7 +8,7 @@
 
 
 
- <Grid RowDefinitions="Auto,Auto,*" Padding="0">
+ <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="0">
 
         <!-- Header label -->
         <Label
@@ -19,9 +19,22 @@
             TextColor="{StaticResource RicksOrange}"
             Margin="0,20,0,10"/>
 
+        <!-- Location Status -->
+        <Border Grid.Row="1" 
+                StrokeShape="RoundRectangle 8"
+                Stroke="{StaticResource CampTeal}"
+                BackgroundColor="LightCyan"
+                Padding="10"
+                Margin="15,0">
+            <Label Text="📍 Location tracking active - You'll receive notifications when entering Rick's Place"
+                   FontSize="12"
+                   HorizontalTextAlignment="Center"
+                   TextColor="DarkBlue" />
+        </Border>
+
         <!-- Top bar "tabs" -->
         <Grid
-            Grid.Row="1"
+            Grid.Row="2"
             BackgroundColor="#F7F7F7"
             Padding="0,8"
             RowSpacing="0"
@@ -113,7 +126,7 @@
         </Grid>
 
         <!-- Body -->
-        <ScrollView Grid.Row="2" Padding="24">
+        <ScrollView Grid.Row="3" Padding="24">
             <Grid>
                 <!-- Events section -->
                 <ContentView IsVisible="{Binding IsEventsVisible}">

@@ -12,11 +12,11 @@ using System.Reflection;
 
 [assembly: System.Reflection.AssemblyCompanyAttribute("RHF_Foundation")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
-[assembly: System.Reflection.AssemblyFileVersionAttribute("1.2.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.2+3fb7bc85cde502979b9fec6eab734555675daa5e")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.3.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.3+01da6eec59195edd9d918478d9a22d40e27f8bd5")]
 [assembly: System.Reflection.AssemblyProductAttribute("RHF_Foundation")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RHF_Foundation")]
-[assembly: System.Reflection.AssemblyVersionAttribute("1.2.0.0")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.3.0.0")]
 [assembly: System.Runtime.Versioning.TargetPlatformAttribute("Android35.0")]
 [assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Android21.0")]
 

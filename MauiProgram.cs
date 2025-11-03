@@ -11,56 +11,49 @@ using RHF_Foundation.Models;
 
 namespace RHF_Foundation;
 
-
 public static class MauiProgram
 {
-public static MauiApp CreateMauiApp()
-{
-var builder = MauiApp.CreateBuilder();
+    public static MauiApp CreateMauiApp()
+    {
+        var builder = MauiApp.CreateBuilder();
         builder
-        .UseMauiApp<App>()
-        .UseMauiCommunityToolkit()  // <-- add this line
-        .ConfigureFonts(fonts =>
-        {
-            fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-            fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-        });
-
-
-        builder.UseMauiApp<App>()
-                .UseMauiCommunityToolkit(); 
+            .UseMauiApp<App>()
+            .UseMauiCommunityToolkit()
+            .ConfigureFonts(fonts =>
+            {
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+            }); 
 
         // Services
         builder.Services.AddSingleton<INavigationService, NavigationService>();
         builder.Services.AddSingleton<IAlertService, AlertService>();
         builder.Services.AddSingleton<TrackingState>();
 
-        #if ANDROID
-                builder.Services.AddSingleton<IGeofenceService, Platforms.Android.GeofenceService_Android>();
-                builder.Services.AddSingleton<INotificationService, Platforms.Android.NotificationService_Android>();
-        #elif IOS
-                builder.Services.AddSingleton<IGeofenceService, Platforms.iOS.GeofenceService_iOS>();
-                builder.Services.AddSingleton<INotificationService, Platforms.iOS.NotificationService_iOS>();
-        #endif
-
-        
+#if ANDROID
+        builder.Services.AddSingleton<IGeofenceService, RHF_Foundation.Platforms.Android.GeofenceService_Android>();
+        builder.Services.AddSingleton<INotificationService, RHF_Foundation.Platforms.Android.NotificationService_Android>();
+        builder.Services.AddSingleton<ILocationPermissionService, RHF_Foundation.Platforms.Android.LocationPermissionService_Android>();
+#elif IOS
+        builder.Services.AddSingleton<IGeofenceService, RHF_Foundation.Platforms.iOS.GeofenceService_iOS>();
+        builder.Services.AddSingleton<INotificationService, RHF_Foundation.Platforms.iOS.NotificationService_iOS>();
+#endif
 
 
         // ViewModels
         builder.Services.AddTransient<MainViewModel>();
         builder.Services.AddTransient<CheckInViewModel>();
         builder.Services.AddTransient<GetInvolvedViewModel>();
-        builder.Services.AddTransient<ActivitesViewModel>();
-
+        builder.Services.AddTransient<ActivitesViewModel>(); // Note: typo in actual class name
 
         // Views
         builder.Services.AddTransient<MainPage>();
         builder.Services.AddTransient<CheckInPage>();
 
 #if DEBUG
-                builder.Logging.AddDebug();
-        #endif
+        builder.Logging.AddDebug();
+#endif
         
         return builder.Build();
-}
+    }
 }

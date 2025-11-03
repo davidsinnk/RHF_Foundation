@@ -1,97 +1,71 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
-		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
-		<!-- <TargetFrameworks>$(TargetFrameworks);net9.0-tizen</TargetFrameworks> -->
+  <PropertyGroup>
+    <!-- Pin exact TFMs with platform versions -->
+    <TargetFrameworks>net9.0-android35.0;net9.0-ios18.0;net9.0-maccatalyst18.5</TargetFrameworks>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <MauiVersion>9.0.0</MauiVersion>
 
-		<!-- Note for MacCatalyst:
-		The default runtime is maccatalyst-x64, except in Release config, in which case the default is maccatalyst-x64;maccatalyst-arm64.
-		When specifying both architectures, use the plural <RuntimeIdentifiers> instead of the singular <RuntimeIdentifier>.
-		The Mac App Store will NOT accept apps with ONLY maccatalyst-arm64 indicated;
-		either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
-		<!-- For example: <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
+    <!-- App metadata -->
+    <OutputType>Exe</OutputType>
+    <RootNamespace>RHF_Foundation</RootNamespace>
+    <ApplicationTitle>Rick's Place</ApplicationTitle>
+    <ApplicationId>com.companyname.rhf_foundation</ApplicationId>
+    <ApplicationDisplayVersion>1.3</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
 
+    <!-- Windows packaging off for now -->
+    <WindowsPackageType>None</WindowsPackageType>
 
-
-
-		<OutputType>Exe</OutputType>
-		<RootNamespace>RHF_Foundation</RootNamespace>
-		<UseMaui>true</UseMaui>
-		<SingleProject>true</SingleProject>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<MauiVersion>9.0.0</MauiVersion>
-
-		<!-- Display name -->
-		<ApplicationTitle>Rick's Place</ApplicationTitle>
-
-		<!-- App Identifier -->
-		<ApplicationId>com.companyname.rhf_foundation</ApplicationId>
-
-		<!-- Versions -->
-		<ApplicationDisplayVersion>1.2</ApplicationDisplayVersion>
-		<ApplicationVersion>1</ApplicationVersion>
-
-		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
-		<WindowsPackageType>None</WindowsPackageType>
-
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
-		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
-	</PropertyGroup>
-
-	<ItemGroup>
-		<!-- App Icon 
-		ForegroundFile="Resources\AppIcon\appiconfg.svg" 
-		
-		-->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" Color="White" />
-
-		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#E34E26" BaseSize="128,128" />
-
-		<!-- Images -->
-		<MauiImage Include="Resources\Images\*" />
-		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" Color="White" />
-		
-		<!-- Custom Fonts -->
-		<MauiFont Include="Resources\Fonts\*" />
-
-		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
-		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
-
-	</ItemGroup>
-
-	<ItemGroup>
-			<PackageReference Include="CommunityToolkit.Maui" Version="12.1.0" />
-			<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-			<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.90" />
-			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
-		</ItemGroup>
+    <!-- Minimum OS versions -->
+    <SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-android'))">21.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-ios'))">15.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-maccatalyst'))">15.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-windows'))">10.0.17763.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion Condition="$(TargetFramework.Contains('-windows'))">10.0.17763.0</TargetPlatformMinVersion>
+  </PropertyGroup>
 
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.90" />
+    <PackageReference Include="CommunityToolkit.Maui" Version="12.1.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+  </ItemGroup>
 
+  <!-- Android-specific packages for location and notifications -->
+  <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
+    <PackageReference Include="Xamarin.GooglePlayServices.Location" Version="121.0.1.1" />
+    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.16.0.1" />
+    <PackageReference Include="Xamarin.AndroidX.Activity" Version="1.10.1.1" />
+  </ItemGroup>
 
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0-ios'">
-	<ApplicationId>org.rhfnow.rhffoundation</ApplicationId>
-	</PropertyGroup>
+  <!-- Assets -->
+  <ItemGroup>
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" Color="White" />
+    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#E34E26" BaseSize="128,128" />
+    <MauiImage Include="Resources\Images\*" />
+    <MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" Color="White" />
+    <MauiFont Include="Resources\Fonts\*" />
+    <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
 
+  <!-- iOS-specific App ID override if you really need it -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net9.0-ios18.5'">
+    <ApplicationId>org.rhfnow.rhffoundation</ApplicationId>
+  </PropertyGroup>
 
-	
-
-	<ItemGroup>
-		<MauiXaml Update="Views\MealsPage.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		</MauiXaml>
-
-		<MauiXaml Update="Views\SchedulePage.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		</MauiXaml>
-	</ItemGroup>
+  <!-- XAML compile hints (optional) -->
+  <ItemGroup>
+    <MauiXaml Update="Views\MealsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\SchedulePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+  </ItemGroup>
 
 </Project>
