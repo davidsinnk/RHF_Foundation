@@ -194,12 +194,22 @@ public partial class MainViewModel : ObservableObject
 
         Events.Add(new EventItem
         {
-            MonthAbbrev = "DEC",
-            EventName = "B1G Championship Night",
-            EventDate = "DEC 06, 2025",
-            TimeRange = "6:00 PM – 10:00 PM",
+            MonthAbbrev = "Weekly",
+            EventName = "RBend & Brew (Yoga & Coffee)",
+            EventDate = "Thursdays",
+            TimeRange = "9:30am – 10:30am",
+            LinkText = "Stretch out for details",
+            LinkUrl = "https://rhfnow.org/program/bend-brew-yoga-coffee/"
+    }); 
+
+        Events.Add(new EventItem
+        {
+            MonthAbbrev = "Weekly",
+            EventName = "Messy Mondays",
+            EventDate = "Every Monday",
+            TimeRange = "5:30 PM – 6:30 PM",
             LinkText = "View event details",
-            LinkUrl = "https://example.com/event/789"
+            LinkUrl = "https://rhfnow.org/program/messy-mondays-2/"
         });
 
         Events.Add(new EventItem
