@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-ios:
-    runs-on: macos-14   # deterministic toolchain
+    runs-on: macos-15
 
     env:
       PROJECT: RHF_Foundation.csproj
@@ -38,7 +38,6 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      # Pin stable SDK + workload manifests (avoids surprise previews)
       - name: Pin SDK/workload manifests
         run: |
           cat > global.json <<'JSON'
@@ -86,7 +85,6 @@ jobs:
           /usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' profile.plist || true
           /usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' profile.plist || true
 
-          # Verify bundle id matches profile application-identifier
           APP_ID=$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' profile.plist)
           PROFILE_BUNDLE_ID="${APP_ID#*.}"
           if [[ "$PROFILE_BUNDLE_ID" != "${BUNDLE_ID}" ]]; then
@@ -119,7 +117,7 @@ jobs:
           echo "MARKETING_VERSION=1.0.0" >> $GITHUB_ENV
           echo "Using BUILD_NUMBER=$BUILD_NUMBER, MARKETING_VERSION=$MARKETING_VERSION"
 
-      # --- Restore for the exact TFM you use in csproj ---
+      # --- Restore for your exact TFM ---
       - name: Restore (iOS net9.0-ios18.0)
         run: dotnet restore ${{ env.PROJECT }} -p:TargetFramework=net9.0-ios18.0
 
