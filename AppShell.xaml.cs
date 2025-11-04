@@ -8,5 +8,6 @@ public partial class AppShell : Shell
 		Routing.RegisterRoute("checkin", typeof(Views.CheckInPage));
 		Routing.RegisterRoute("getinvolved", typeof(Views.GetInvolved));
 		Routing.RegisterRoute("activites", typeof(Views.ActivitiesPage));
+		//Routing.RegisterRoute("locationtracking", typeof(Views.LocationTrackingPage));
 	}
 }
