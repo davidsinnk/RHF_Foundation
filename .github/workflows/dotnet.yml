@@ -9,9 +9,11 @@ on:
 
 jobs:
   build-ios:
-    runs-on: macos-latest
+    runs-on: macos-14   # deterministic toolchain
+
     env:
       PROJECT: RHF_Foundation.csproj
+      BUNDLE_ID: org.rhfnow.rhffoundation
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
       DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE: 1
@@ -21,8 +23,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Pin Xcode to a real version compatible with .NET 9 iOS
-      - name: Setup Xcode
+      - name: Setup Xcode 16.4
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '16.4'
@@ -37,34 +38,35 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      # Pin a STABLE workload set (avoids preview iOS packs that require Xcode 26)
-      - name: Pin workload set (global.json)
+      # Pin stable SDK + workload manifests (avoids surprise previews)
+      - name: Pin SDK/workload manifests
         run: |
-          echo '{' > global.json
-          echo '  "sdk": {' >> global.json
-          echo '    "version": "9.0.306",' >> global.json
-          echo '    "rollForward": "latestFeature",' >> global.json
-          echo '    "workloadVersion": "9.0.300"' >> global.json
-          echo '  }' >> global.json
-          echo '}' >> global.json
-          echo "== global.json =="
-          cat global.json
+          cat > global.json <<'JSON'
+          {
+            "sdk": {
+              "version": "9.0.306",
+              "rollForward": "latestFeature",
+              "workloadVersion": "9.0.300"
+            }
+          }
+          JSON
+          echo "== global.json ==" && cat global.json
 
-      - name: Install stable MAUI workloads
+      - name: Install MAUI workloads
         run: |
           dotnet --info
           dotnet workload install maui --source https://api.nuget.org/v3/index.json
           dotnet workload list
 
-      # ---- Code signing material ----
-      - name: Import Apple Certificates (.p12 with private key)
+      # --- Code signing material ---
+      - name: Import Apple certificates (.p12)
         uses: apple-actions/import-codesign-certs@v3
         with:
           p12-file-base64: ${{ secrets.P12_CERTIFICATE }}
           p12-password: ${{ secrets.P12_CERTIFICATE_PASSWORD }}
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
 
-      - name: Install Provisioning Profile (App Store Connect)
+      - name: Install provisioning profile
         shell: bash
         run: |
           set -euo pipefail
@@ -77,74 +79,84 @@ jobs:
             printf %s "${{ secrets.IOS_PROFILE_BASE64 }}" | base64 -D > "$PROFILE"
           fi
           /usr/bin/security cms -D -i "$PROFILE" > profile.plist
-          echo "== Profile basics =="
+
+          echo "== Provisioning Profile =="
           /usr/libexec/PlistBuddy -c 'Print :Name' profile.plist || true
           /usr/libexec/PlistBuddy -c 'Print :UUID' profile.plist || true
           /usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' profile.plist || true
           /usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' profile.plist || true
 
-      - name: Capture codesign identity
-        id: id
+          # Verify bundle id matches profile application-identifier
+          APP_ID=$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' profile.plist)
+          PROFILE_BUNDLE_ID="${APP_ID#*.}"
+          if [[ "$PROFILE_BUNDLE_ID" != "${BUNDLE_ID}" ]]; then
+            echo "::error::Bundle ID mismatch. Profile has '$PROFILE_BUNDLE_ID' but workflow uses '${BUNDLE_ID}'."
+            exit 1
+          fi
+
+          echo "PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' profile.plist)" >> $GITHUB_ENV
+          echo "TEAM_ID=$(/usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' profile.plist)" >> $GITHUB_ENV
+
+      - name: Capture codesign identity (Apple Distribution)
+        id: codesign
         shell: bash
         run: |
-          echo "== Valid code signing identities =="
+          set -euo pipefail
+          echo "== Available identities =="
           security find-identity -p codesigning -v || true
-          ID="$(security find-identity -p codesigning -v | awk -F\" '/Apple Distribution/ {print $2; exit}')"
-          test -n "$ID"
+          ID=$(security find-identity -p codesigning -v | awk '/Apple Distribution/ {print $2; exit}')
+          if [[ -z "$ID" ]]; then
+            echo "::error::No 'Apple Distribution' identity found in keychain."
+            exit 1
+          fi
           echo "identity=$ID" >> $GITHUB_OUTPUT
           echo "Using identity: $ID"
 
-      - name: Capture profile UUID
-        id: profuuid
-        shell: bash
-        run: |
-          UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' profile.plist)
-          test -n "$UUID"
-          echo "uuid=$UUID" >> $GITHUB_OUTPUT
-          echo "Using profile UUID: $UUID"
-
-      - name: Capture team id
-        id: team
-        shell: bash
-        run: |
-          TEAM=$(/usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' profile.plist)
-          test -n "$TEAM"
-          echo "id=$TEAM" >> $GITHUB_OUTPUT
-          echo "Using Team ID: $TEAM"
-
-      # ---- Versioning: always-increasing build number (fixes Apple rule) ----
-      - name: Set build number
+      # --- Versioning ---
+      - name: Set build & marketing versions
         run: |
           echo "BUILD_NUMBER=$(date -u +%Y%m%d%H%M%S)" >> $GITHUB_ENV
-          echo "Using BUILD_NUMBER=$BUILD_NUMBER"
+          echo "MARKETING_VERSION=1.0.0" >> $GITHUB_ENV
+          echo "Using BUILD_NUMBER=$BUILD_NUMBER, MARKETING_VERSION=$MARKETING_VERSION"
 
+      # --- Restore for the exact TFM you use in csproj ---
+      - name: Restore (iOS net9.0-ios18.0)
+        run: dotnet restore ${{ env.PROJECT }} -p:TargetFramework=net9.0-ios18.0
 
-      # ---- Build signed .ipa for device/TestFlight ----
+      # --- Build/Publish signed .ipa ---
       - name: Publish iOS (Release, signed)
         run: |
-          dotnet publish ${{ env.PROJECT }} -c Release -f net9.0-ios \
+          dotnet publish ${{ env.PROJECT }} -c Release -f net9.0-ios18.0 \
             -p:RuntimeIdentifier=ios-arm64 \
             -p:ArchiveOnBuild=true \
             -p:CreatePackage=true \
+            -p:ApplicationId=${{ env.BUNDLE_ID }} \
             -p:ApplicationVersion=${{ env.BUILD_NUMBER }} \
-            -p:ApplicationId=org.rhfnow.rhffoundation \
-            -p:CodesignKey="${{ steps.id.outputs.identity }}" \
-            -p:CodesignProvision="${{ steps.profuuid.outputs.uuid }}" \
-            -p:CodesignTeamId="${{ steps.team.outputs.id }}"
+            -p:ApplicationDisplayVersion=${{ env.MARKETING_VERSION }} \
+            -p:CodesignKey="${{ steps.codesign.outputs.identity }}" \
+            -p:CodesignProvision="${{ env.PROFILE_UUID }}" \
+            -p:CodesignTeamId="${{ env.TEAM_ID }}"
 
       - name: Find IPA
         id: findipa
         shell: bash
         run: |
-          IPA_PATH=$(find . -type f -name "*.ipa" | head -n 1)
-          echo "ipa=$IPA_PATH" >> $GITHUB_OUTPUT
-          test -n "$IPA_PATH" && echo "Found IPA: $IPA_PATH" || (echo "No IPA found" && exit 1)
+          set -euo pipefail
+          CANDIDATE=$(find ./bin/Release/net9.0-ios18.0/ios-arm64/publish -type f -name "*.ipa" -print -quit || true)
+          if [[ -z "$CANDIDATE" ]]; then
+            CANDIDATE=$(find . -type f -name "*.ipa" -print -quit || true)
+          fi
+          if [[ -z "$CANDIDATE" ]]; then
+            echo "::error::No IPA found."
+            exit 1
+          fi
+          echo "ipa=$CANDIDATE" >> $GITHUB_OUTPUT
+          echo "Found IPA: $CANDIDATE"
 
       - name: Upload app to TestFlight
-        uses: Apple-Actions/upload-testflight-build@v1
+        uses: apple-actions/upload-testflight-build@v1
         with:
           app-path: ${{ steps.findipa.outputs.ipa }}
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
-
