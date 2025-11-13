@@ -59,36 +59,43 @@ public partial class CheckInViewModel : ObservableObject, IQueryAttributable
 
 //Not used... legacy code for referance
     [RelayCommand]
-    private async Task CheckInAsync()
+    private async Task BackAsync()
     {
-        //await _alerts.ShowAsync("Checked In", $"Checked in at {PlaceId ?? "unknown"}.");
-        //await _nav.GoToAsync("checkin");
+        await _nav.PopToRootAsync();
     }
 
 
-[RelayCommand]
-private async Task ArriveAsync()
+    [RelayCommand]
+    private async Task ArriveAsync()
     {
         int total = SelectedAdults + SelectedChildren;
-        if(total == 0)
-            {
-                await _alerts.ShowAsync("OH NO!!!", $"You must select at least one person to check in");
-                return;
-            }
+        if (total == 0)
+        {
+            await _alerts.ShowAsync("OH NO!!!", $"You must select at least one person to check in");
+            return;
+        }
 
         var response = await _api.CheckInNumberOfVisitors(total);
-        
-        if (response == "error")
-            {
-                await _alerts.ShowAsync("OH NO!!!", $"Something went wrong");
 
-            }
+        if (response == "error")
+        {
+            await _alerts.ShowAsync("OH NO!!!", $"Something went wrong");
+
+        }
         else
         {
+            IncrementVisitCount();
             await _alerts.ShowAsync("Checked In", $"You are all set");
             await _nav.PopToRootAsync();
         }
-        
+
         //await _nav.GoToAsync("home", new Dictionary<string, object> { ["placeId"] = placeId }); //legacy code for referance
+    }
+    
+private void IncrementVisitCount()
+    {
+        int visits = Preferences.Get("NumberOfVisits", 0);
+        visits++;
+        Preferences.Set("NumberOfVisits", visits);
     }
 }

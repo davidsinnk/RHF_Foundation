@@ -3,17 +3,12 @@ using System.Diagnostics;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using RHF_Foundation.Views.Popups;
+using RHF_Foundation.Views.PopUps;
 using CommunityToolkit.Mvvm.Messaging;
-
 using RHF_Foundation.Views;
+using CommunityToolkit.Maui.Views;
 using RHF_Foundation.Services.Interfaces;
 using RHF_Foundation.Services;
-
-
-
-
-using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Maui.Extensions;
 using RHF_Foundation.Models;
 using System.Windows.Input;
@@ -52,6 +47,9 @@ public partial class MainViewModel : ObservableObject
     private const double TargetLon = -78.9730348411858;
     private const double RadiusMeters = 300;
 
+    [ObservableProperty]
+    private int numberOfVisits = Preferences.Get("NumberOfVisits", 0);
+
 
     //Buttons Commands
     public IAsyncRelayCommand GoScheduleCommand { get; }
@@ -71,6 +69,7 @@ public partial class MainViewModel : ObservableObject
     private string? _lastArrivalPlaceId;
     private DateTime _lastArrivalTimeUtc;
     private bool _isNavigating;
+    private bool _popupOpen;
 
 
     public MainViewModel(IGeofenceService geofence, INotificationService notify, INavigationService nav)
@@ -83,6 +82,7 @@ public partial class MainViewModel : ObservableObject
         //and put htis in the constructor for the DI service.... 
         _checkInAPIService = new CheckInAPIService();
 
+        _popupOpen = true;
 
         GoScheduleCommand = new AsyncRelayCommand(async () => await Shell.Current.GoToAsync("//schedule"));
         GoMapCommand = new AsyncRelayCommand(async () => await Shell.Current.GoToAsync("//map"));
@@ -174,42 +174,42 @@ public partial class MainViewModel : ObservableObject
 
         Events.Add(new EventItem
         {
-            MonthAbbrev = "NOV",
-            EventName = "Falling Into Christmas",
-            EventDate = "Nov 15, 2025",
-            TimeRange = "10:00 AM",
+            MonthAbbrev = "Weekly",
+            EventName = "Messy Mondays",
+            EventDate = "Mondays",
+            TimeRange = "1 PM or 5:30 PM",
+            LinkText = "Get Messy here",
+            LinkUrl = "https://rhfnow.org/program/messy-mondays-2/"
+        });
+
+        Events.Add(new EventItem
+        {
+            MonthAbbrev = "Weekly",
+            EventName = "Bend & Brew (Yoga & Coffee)",
+            EventDate = "Thursdays",
+            TimeRange = "9:30am – 10:30am",
+            LinkText = "Stretch out for details",
+            LinkUrl = "https://rhfnow.org/program/bend-brew-yoga-coffee/"
+        }); 
+
+        Events.Add(new EventItem
+        {
+            MonthAbbrev = "Coming Soon",
+            EventName = "Weekend at Rick’s Place",
+            EventDate = "Check back in 2026!",
+            //TimeRange = "5:30 PM – 6:30 PM",
             LinkText = "View event details",
-            LinkUrl = "https://rhfnow.org/event/november-fall-festival/"
+            LinkUrl = "https://rhfnow.org/program/dad-me-weekend/"
         });
 
         Events.Add(new EventItem
         {
             MonthAbbrev = "DEC",
-            EventName = "RHF App Launch",
+            EventName = "RHF App Launch (Tenative)",
             EventDate = "DEC 01, 2025",
             TimeRange = "All Day",
-            LinkText = "View event details",
-            LinkUrl = "https://example.com/event/789"
-        });
-
-        Events.Add(new EventItem
-        {
-            MonthAbbrev = "Weekly",
-            EventName = "RBend & Brew (Yoga & Coffee)",
-            EventDate = "Thursdays",
-            TimeRange = "9:30am – 10:30am",
-            LinkText = "Stretch out for details",
-            LinkUrl = "https://rhfnow.org/program/bend-brew-yoga-coffee/"
-    }); 
-
-        Events.Add(new EventItem
-        {
-            MonthAbbrev = "Weekly",
-            EventName = "Messy Mondays",
-            EventDate = "Every Monday",
-            TimeRange = "5:30 PM – 6:30 PM",
-            LinkText = "View event details",
-            LinkUrl = "https://rhfnow.org/program/messy-mondays-2/"
+            //LinkText = "View event details",
+            //LinkUrl = "https://example.com/event/789"
         });
 
         Events.Add(new EventItem
@@ -412,6 +412,8 @@ public partial class MainViewModel : ObservableObject
     {
         try
         {
+            var tcs = new TaskCompletionSource<bool>();
+            
             MainThread.BeginInvokeOnMainThread(async () =>
             {
                 try
@@ -433,12 +435,16 @@ public partial class MainViewModel : ObservableObject
                             Microsoft.Maui.ApplicationModel.AppInfo.ShowSettingsUI();
                         }
                     }
+                    tcs.SetResult(true);
                 }
                 catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"[VM] Error showing permission instructions: {ex.Message}");
+                    tcs.SetException(ex);
                 }
             });
+            
+            await tcs.Task;
         }
         catch (Exception ex)
         {
@@ -453,14 +459,14 @@ public partial class MainViewModel : ObservableObject
             // Check if we've already requested permissions and been denied
             var prefsKey = "LocationPermissionsRequested";
             var alreadyRequested = Preferences.Get(prefsKey, false);
-            
+
             // 1) Foreground location
             var fg = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
             if (fg != PermissionStatus.Granted)
             {
                 System.Diagnostics.Debug.WriteLine("[VM] Requesting foreground location permission");
                 fg = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
-                
+
                 // Save that we've requested permissions
                 Preferences.Set(prefsKey, true);
             }
@@ -468,7 +474,7 @@ public partial class MainViewModel : ObservableObject
             if (fg != PermissionStatus.Granted)
             {
                 System.Diagnostics.Debug.WriteLine("[VM] Foreground location permission denied");
-                
+
                 // Show alert for user to manually enable in settings
                 if (alreadyRequested)
                 {
@@ -484,7 +490,7 @@ public partial class MainViewModel : ObservableObject
                                     "Location permission is required for geofencing. Please enable 'Allow all the time' in Settings > Apps > RHF Foundation > Permissions > Location.",
                                     "Open Settings",
                                     "Cancel");
-                                
+
                                 if (result == true)
                                 {
                                     Microsoft.Maui.ApplicationModel.AppInfo.ShowSettingsUI();
@@ -551,6 +557,30 @@ public partial class MainViewModel : ObservableObject
         {
             System.Diagnostics.Debug.WriteLine($"[VM] RequestLocationPermissionsAsync error: {ex.Message}");
             return false;
+        }
+    }
+
+    public async Task LoadData()
+    {
+        // Simulate loading data or updating a value
+        NumberOfVisits = Preferences.Get("NumberOfVisits", 0);
+
+        if (NumberOfVisits != 1 && NumberOfVisits != 5 && NumberOfVisits != 10 && NumberOfVisits != 20){
+            _popupOpen = true;
+        }
+        else if ( _popupOpen)
+        {
+            int totalCheckIns = NumberOfVisits;
+
+            _popupOpen = false;
+            
+            // Show popup through the current page since ViewModels don't have direct UI access
+            var currentPage = Application.Current?.MainPage ?? Shell.Current.CurrentPage;
+            if (currentPage != null)
+            {
+                var popup = new CheckInPopup(NumberOfVisits);
+                await currentPage.ShowPopupAsync(popup);
+            }
         }
     }
 

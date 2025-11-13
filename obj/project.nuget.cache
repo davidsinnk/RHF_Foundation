@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Uwp9SiEZPcs=",
+  "dgSpecHash": "4EABXUsOdMw=",
   "success": true,
   "projectFilePath": "/Users/davidsinnk/Projects/RHF_Foundation/RHF_Foundation.csproj",
   "expectedPackageFiles": [
@@ -124,7 +124,8 @@
     "/Users/davidsinnk/.nuget/packages/microsoft.netcore.app.ref/9.0.10/microsoft.netcore.app.ref.9.0.10.nupkg.sha512",
     "/Users/davidsinnk/.nuget/packages/microsoft.ios.ref.net9.0_18.0/18.0.9617/microsoft.ios.ref.net9.0_18.0.18.0.9617.nupkg.sha512",
     "/Users/davidsinnk/.nuget/packages/microsoft.ios.runtime.iossimulator-arm64.net9.0_18.0/18.0.9617/microsoft.ios.runtime.iossimulator-arm64.net9.0_18.0.18.0.9617.nupkg.sha512",
-    "/Users/davidsinnk/.nuget/packages/microsoft.netcore.app.ref/9.0.10/microsoft.netcore.app.ref.9.0.10.nupkg.sha512"
+    "/Users/davidsinnk/.nuget/packages/microsoft.netcore.app.ref/9.0.10/microsoft.netcore.app.ref.9.0.10.nupkg.sha512",
+    "/Users/davidsinnk/.nuget/packages/microsoft.maccatalyst.ref.net9.0_18.0/18.0.9617/microsoft.maccatalyst.ref.net9.0_18.0.18.0.9617.nupkg.sha512"
   ],
   "logs": []
 }

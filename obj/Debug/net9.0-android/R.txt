@@ -1,1 +1,2 @@
-int raw aboutassets 0x7f010000
+int mipmap appicon 0x7f010000
+int raw aboutassets 0x7f020000

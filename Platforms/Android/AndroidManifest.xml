@@ -21,7 +21,7 @@
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
 
-  <application>
+  <application android:icon="@mipmap/appicon">
     <!-- Geofence broadcast receiver for background notifications -->
     <receiver android:name="rhf_foundation.platforms.android.GeofenceBroadcastReceiver" 
               android:exported="true" 
