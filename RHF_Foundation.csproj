@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- Pin exact TFMs with platform versions -->
-    <TargetFrameworks>net9.0-android35.0;net9.0-ios18.0;net9.0-maccatalyst18.5</TargetFrameworks>
+    <TargetFrameworks>net9.0-android35.0;net9.0-ios18.0;net9.0-maccatalyst18.0</TargetFrameworks>
     <UseMaui>true</UseMaui>
     <SingleProject>true</SingleProject>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -14,7 +14,7 @@
     <RootNamespace>RHF_Foundation</RootNamespace>
     <ApplicationTitle>Rick's Place</ApplicationTitle>
     <ApplicationId>com.companyname.rhf_foundation</ApplicationId>
-    <ApplicationDisplayVersion>1.3</ApplicationDisplayVersion>
+    <ApplicationDisplayVersion>1.4</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
 
     <!-- Windows packaging off for now -->
@@ -26,6 +26,17 @@
     <SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-maccatalyst'))">15.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-windows'))">10.0.17763.0</SupportedOSPlatformVersion>
     <TargetPlatformMinVersion Condition="$(TargetFramework.Contains('-windows'))">10.0.17763.0</TargetPlatformMinVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+      <MauiIcon Include="Resources\AppIcon\appicon.svg"  Color="White" />
+  </ItemGroup>
+
+  <!-- Android debug build properties to fix monodroid startup crash -->
+  <PropertyGroup Condition="$(TargetFramework.Contains('-android'))">
+    <AndroidDoNotCompress>so</AndroidDoNotCompress>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
   </PropertyGroup>
 
 
@@ -45,7 +56,12 @@
 
   <!-- Assets -->
   <ItemGroup>
-    <MauiIcon Include="Resources\AppIcon\appicon.svg" Color="White" />
+    		<!-- App Icon - Manual Android Resources -->
+		<AndroidResource Include="Platforms\Android\Resources\mipmap-mdpi\appicon.png" />
+		<AndroidResource Include="Platforms\Android\Resources\mipmap-hdpi\appicon.png" />
+		<AndroidResource Include="Platforms\Android\Resources\mipmap-xhdpi\appicon.png" />
+		<AndroidResource Include="Platforms\Android\Resources\mipmap-xxhdpi\appicon.png" />
+		<AndroidResource Include="Platforms\Android\Resources\mipmap-xxxhdpi\appicon.png" />
     <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#E34E26" BaseSize="128,128" />
     <MauiImage Include="Resources\Images\*" />
     <MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" Color="White" />

@@ -29,12 +29,12 @@
 	<key>XSAppIconAssets</key>
 	<string>Assets.xcassets/appicon.appiconset</string>
 
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>This app uses your location to detect when you are near designated areas.</string>
-<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-<string>This app always uses your location to provide location-based notifications.</string>
-<key>NSLocationAlwaysUsageDescription</key>
-<string>This app requires access to your location even when running in the background.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>RHF Foundation needs location access to detect when you arrive at camp and provide location-based features. This helps us provide a better camp experience by automatically checking you in when you arrive.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>RHF Foundation needs location access even when the app is not in use to detect when you arrive at camp and send helpful notifications. This allows the app to automatically check you in and provide location-based features even when your phone is locked or you're using other apps.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>RHF Foundation needs continuous location access to monitor your proximity to camp and provide background notifications. This helps ensure you never miss check-in opportunities and stay connected with camp activities.</string>
 
 	<key>UIBackgroundModes</key>
 	<array>

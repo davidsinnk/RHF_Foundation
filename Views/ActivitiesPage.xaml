@@ -4,7 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:vm="clr-namespace:RHF_Foundation.ViewModels"
-    Title="Get Involved">
+    Title="Actvities">
 
     <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="0">
 
@@ -16,11 +16,8 @@
                TextColor="{StaticResource RicksOrange}"
                Margin="0,20,0,10"/>
 
-
-
         <!-- Responsive Top Tabs -->
         <Grid Grid.Row="2"
-              BackgroundColor="White"
               Padding="0,8"
               ColumnSpacing="20"
               HorizontalOptions="CenterAndExpand"
@@ -41,10 +38,48 @@
                 <VerticalStackLayout Spacing="4"
                                      VerticalOptions="Center"
                                      HorizontalOptions="Center">
-                    <Image Source="event.png" WidthRequest="22" HeightRequest="22"/>
+                    <Image Source="event.png"
+                           WidthRequest="22"
+                           HeightRequest="22">
+                        <Image.Triggers>
+                            <!-- Selected: bigger icon -->
+                            <DataTrigger TargetType="Image"
+                                         Binding="{Binding IsEventsVisible}"
+                                         Value="True">
+                                <Setter Property="WidthRequest" Value="28"/>
+                                <Setter Property="HeightRequest" Value="28"/>
+                            </DataTrigger>
+                            <!-- Unselected: smaller icon -->
+                            <DataTrigger TargetType="Image"
+                                         Binding="{Binding IsEventsVisible}"
+                                         Value="False">
+                                <Setter Property="WidthRequest" Value="22"/>
+                                <Setter Property="HeightRequest" Value="22"/>
+                            </DataTrigger>
+                        </Image.Triggers>
+                    </Image>
+
                     <Label Text="Events"
                            FontAttributes="Bold"
-                           HorizontalTextAlignment="Center"/>
+                           HorizontalTextAlignment="Center"
+                           FontSize="14">
+                        <Label.Triggers>
+                            <!-- Selected: bigger font, light text on orange -->
+                            <DataTrigger TargetType="Label"
+                                         Binding="{Binding IsEventsVisible}"
+                                         Value="True">
+                                <Setter Property="FontSize" Value="16"/>
+                                <Setter Property="TextColor" Value="White"/>
+                            </DataTrigger>
+                            <!-- Unselected: smaller font, orange text on white -->
+                            <DataTrigger TargetType="Label"
+                                         Binding="{Binding IsEventsVisible}"
+                                         Value="False">
+                                <Setter Property="FontSize" Value="14"/>
+                                <Setter Property="TextColor" Value="{StaticResource RicksOrange}"/>
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
                 </VerticalStackLayout>
 
                 <Border.GestureRecognizers>
@@ -52,14 +87,29 @@
                 </Border.GestureRecognizers>
 
                 <Border.Triggers>
-                    <DataTrigger TargetType="Border" Binding="{Binding IsEventsVisible}" Value="True">
-                        <Setter Property="BackgroundColor" Value="White"/>
-                        <Setter Property="Stroke" Value="{StaticResource RicksOrange}"/>
-                        <Setter Property="StrokeThickness" Value="3"/>
-                    </DataTrigger>
-                    <DataTrigger TargetType="Border" Binding="{Binding IsEventsVisible}" Value="False">
+                    <!-- Selected: bigger orange pill -->
+                    <DataTrigger TargetType="Border"
+                                 Binding="{Binding IsEventsVisible}"
+                                 Value="True">
                         <Setter Property="BackgroundColor" Value="{StaticResource RicksOrange}"/>
                         <Setter Property="StrokeThickness" Value="0"/>
+                        <Setter Property="HeightRequest" Value="72"/>
+                        <Setter Property="MinimumWidthRequest" Value="180"/>
+                        <Setter Property="Padding" Value="18,10"/>
+                        <Setter Property="Scale" Value="1.08"/>
+                    </DataTrigger>
+
+                    <!-- Unselected: smaller white pill -->
+                    <DataTrigger TargetType="Border"
+                                 Binding="{Binding IsEventsVisible}"
+                                 Value="False">
+                        <Setter Property="BackgroundColor" Value="White"/>
+                        <Setter Property="Stroke" Value="{StaticResource RicksOrange}"/>
+                        <Setter Property="StrokeThickness" Value="2"/>
+                        <Setter Property="HeightRequest" Value="60"/>
+                        <Setter Property="MinimumWidthRequest" Value="160"/>
+                        <Setter Property="Padding" Value="14,8"/>
+                        <Setter Property="Scale" Value="1"/>
                     </DataTrigger>
                 </Border.Triggers>
             </Border>
@@ -78,10 +128,48 @@
                 <VerticalStackLayout Spacing="4"
                                      VerticalOptions="Center"
                                      HorizontalOptions="Center">
-                    <Image Source="program.png" WidthRequest="22" HeightRequest="22"/>
+                    <Image Source="program.png"
+                           WidthRequest="22"
+                           HeightRequest="22">
+                        <Image.Triggers>
+                            <!-- Selected: bigger icon -->
+                            <DataTrigger TargetType="Image"
+                                         Binding="{Binding IsProgramsVisible}"
+                                         Value="True">
+                                <Setter Property="WidthRequest" Value="28"/>
+                                <Setter Property="HeightRequest" Value="28"/>
+                            </DataTrigger>
+                            <!-- Unselected: smaller icon -->
+                            <DataTrigger TargetType="Image"
+                                         Binding="{Binding IsProgramsVisible}"
+                                         Value="False">
+                                <Setter Property="WidthRequest" Value="22"/>
+                                <Setter Property="HeightRequest" Value="22"/>
+                            </DataTrigger>
+                        </Image.Triggers>
+                    </Image>
+
                     <Label Text="Programs"
                            FontAttributes="Bold"
-                           HorizontalTextAlignment="Center"/>
+                           HorizontalTextAlignment="Center"
+                           FontSize="14">
+                        <Label.Triggers>
+                            <!-- Selected: bigger font, light text on orange -->
+                            <DataTrigger TargetType="Label"
+                                         Binding="{Binding IsProgramsVisible}"
+                                         Value="True">
+                                <Setter Property="FontSize" Value="16"/>
+                                <Setter Property="TextColor" Value="White"/>
+                            </DataTrigger>
+                            <!-- Unselected: smaller font, orange text on white -->
+                            <DataTrigger TargetType="Label"
+                                         Binding="{Binding IsProgramsVisible}"
+                                         Value="False">
+                                <Setter Property="FontSize" Value="14"/>
+                                <Setter Property="TextColor" Value="{StaticResource RicksOrange}"/>
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
                 </VerticalStackLayout>
 
                 <Border.GestureRecognizers>
@@ -89,14 +177,29 @@
                 </Border.GestureRecognizers>
 
                 <Border.Triggers>
-                    <DataTrigger TargetType="Border" Binding="{Binding IsProgramsVisible}" Value="True">
-                        <Setter Property="BackgroundColor" Value="White"/>
-                        <Setter Property="Stroke" Value="{StaticResource RicksOrange}"/>
-                        <Setter Property="StrokeThickness" Value="3"/>
-                    </DataTrigger>
-                    <DataTrigger TargetType="Border" Binding="{Binding IsProgramsVisible}" Value="False">
+                    <!-- Selected: bigger orange pill -->
+                    <DataTrigger TargetType="Border"
+                                 Binding="{Binding IsProgramsVisible}"
+                                 Value="True">
                         <Setter Property="BackgroundColor" Value="{StaticResource RicksOrange}"/>
                         <Setter Property="StrokeThickness" Value="0"/>
+                        <Setter Property="HeightRequest" Value="72"/>
+                        <Setter Property="MinimumWidthRequest" Value="180"/>
+                        <Setter Property="Padding" Value="18,10"/>
+                        <Setter Property="Scale" Value="1.08"/>
+                    </DataTrigger>
+
+                    <!-- Unselected: smaller white pill -->
+                    <DataTrigger TargetType="Border"
+                                 Binding="{Binding IsProgramsVisible}"
+                                 Value="False">
+                        <Setter Property="BackgroundColor" Value="White"/>
+                        <Setter Property="Stroke" Value="{StaticResource RicksOrange}"/>
+                        <Setter Property="StrokeThickness" Value="2"/>
+                        <Setter Property="HeightRequest" Value="60"/>
+                        <Setter Property="MinimumWidthRequest" Value="160"/>
+                        <Setter Property="Padding" Value="14,8"/>
+                        <Setter Property="Scale" Value="1"/>
                     </DataTrigger>
                 </Border.Triggers>
             </Border>

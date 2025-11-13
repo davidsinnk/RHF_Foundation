@@ -37,6 +37,7 @@ public static class MauiProgram
 #elif IOS
         builder.Services.AddSingleton<IGeofenceService, RHF_Foundation.Platforms.iOS.GeofenceService_iOS>();
         builder.Services.AddSingleton<INotificationService, RHF_Foundation.Platforms.iOS.NotificationService_iOS>();
+        builder.Services.AddSingleton<ILocationPermissionService, RHF_Foundation.Platforms.iOS.LocationPermissionService_iOS>();
 #endif
 
 
