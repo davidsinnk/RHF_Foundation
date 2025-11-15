@@ -82,7 +82,7 @@ public partial class MainViewModel : ObservableObject
 
         //yes... we need to talk about this later...
         //and put htis in the constructor for the DI service.... 
-        _checkInAPIService = new CheckInAPIService();
+        _checkInAPIService = new AzureCheckInAPI();
 
         _popupOpen = true;
 

@@ -106,7 +106,7 @@ public class GeofenceService_iOS : NSObject, IGeofenceService
     sealed class GeofenceDelegate : CLLocationManagerDelegate
     {
         //yes yes... I know this is tightly couples and need to be refed to the constructor or DI service
-        private ICheckInAPIService _checkInAPIService = new CheckInAPIService();
+        private ICheckInAPIService _checkInAPIService = new AzureCheckInAPI(new HttpClient());
 
         public override void AuthorizationChanged(CLLocationManager manager, CLAuthorizationStatus status)
         {

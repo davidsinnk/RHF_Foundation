@@ -37,7 +37,7 @@ public partial class CheckInViewModel : ObservableObject, IQueryAttributable
         _trackingState = trackingState;
 
         //yes yes... I know this is tightly couples and need to be refed to the constructor or DI service
-        _api = new CheckInAPIService();
+        _api = new AzureCheckInAPI();
 
         AdultOptions = new ObservableCollection<int>();
         ChildOptions = new ObservableCollection<int>();
