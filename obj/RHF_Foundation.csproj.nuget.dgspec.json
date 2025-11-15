@@ -18,9 +18,9 @@
           "/Users/davidsinnk/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
-          "net9.0-android",
-          "net9.0-ios",
-          "net9.0-maccatalyst"
+          "net9.0-android35.0",
+          "net9.0-ios18.0",
+          "net9.0-maccatalyst18.0"
         ],
         "sources": {
           "/usr/local/share/dotnet/library-packs": {},
@@ -28,15 +28,15 @@
         },
         "frameworks": {
           "net9.0-android35.0": {
-            "targetAlias": "net9.0-android",
+            "targetAlias": "net9.0-android35.0",
             "projectReferences": {}
           },
-          "net9.0-ios18.5": {
-            "targetAlias": "net9.0-ios",
+          "net9.0-ios18.0": {
+            "targetAlias": "net9.0-ios18.0",
             "projectReferences": {}
           },
-          "net9.0-maccatalyst18.5": {
-            "targetAlias": "net9.0-maccatalyst",
+          "net9.0-maccatalyst18.0": {
+            "targetAlias": "net9.0-maccatalyst18.0",
             "projectReferences": {}
           }
         },
@@ -54,7 +54,7 @@
       },
       "frameworks": {
         "net9.0-android35.0": {
-          "targetAlias": "net9.0-android",
+          "targetAlias": "net9.0-android35.0",
           "dependencies": {
             "CommunityToolkit.Maui": {
               "target": "Package",
@@ -77,6 +77,18 @@
               "target": "Package",
               "version": "[9.0.8, )",
               "autoReferenced": true
+            },
+            "Xamarin.AndroidX.Activity": {
+              "target": "Package",
+              "version": "[1.10.1.1, )"
+            },
+            "Xamarin.AndroidX.Core": {
+              "target": "Package",
+              "version": "[1.16.0.1, )"
+            },
+            "Xamarin.GooglePlayServices.Location": {
+              "target": "Package",
+              "version": "[121.0.1.1, )"
             }
           },
           "imports": [
@@ -93,7 +105,7 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.NETCore.App.Ref",
-              "version": "[9.0.9, 9.0.9]"
+              "version": "[9.0.10, 9.0.10]"
             }
           ],
           "frameworkReferences": {
@@ -106,8 +118,8 @@
           },
           "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.304/PortableRuntimeIdentifierGraph.json"
         },
-        "net9.0-ios18.5": {
-          "targetAlias": "net9.0-ios",
+        "net9.0-ios18.0": {
+          "targetAlias": "net9.0-ios18.0",
           "dependencies": {
             "CommunityToolkit.Maui": {
               "target": "Package",
@@ -145,8 +157,16 @@
           "warn": true,
           "downloadDependencies": [
             {
+              "name": "Microsoft.iOS.Ref.net9.0_18.0",
+              "version": "[18.0.9617, 18.0.9617]"
+            },
+            {
+              "name": "Microsoft.iOS.Runtime.iossimulator-arm64.net9.0_18.0",
+              "version": "[18.0.9617, 18.0.9617]"
+            },
+            {
               "name": "Microsoft.NETCore.App.Ref",
-              "version": "[9.0.9, 9.0.9]"
+              "version": "[9.0.10, 9.0.10]"
             }
           ],
           "frameworkReferences": {
@@ -159,8 +179,8 @@
           },
           "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.304/PortableRuntimeIdentifierGraph.json"
         },
-        "net9.0-maccatalyst18.5": {
-          "targetAlias": "net9.0-maccatalyst",
+        "net9.0-maccatalyst18.0": {
+          "targetAlias": "net9.0-maccatalyst18.0",
           "dependencies": {
             "CommunityToolkit.Maui": {
               "target": "Package",
@@ -199,8 +219,12 @@
           "warn": true,
           "downloadDependencies": [
             {
+              "name": "Microsoft.MacCatalyst.Ref.net9.0_18.0",
+              "version": "[18.0.9617, 18.0.9617]"
+            },
+            {
               "name": "Microsoft.NETCore.App.Ref",
-              "version": "[9.0.9, 9.0.9]"
+              "version": "[9.0.10, 9.0.10]"
             }
           ],
           "frameworkReferences": {

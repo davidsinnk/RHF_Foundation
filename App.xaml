@@ -13,6 +13,11 @@ xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
 <Color x:Key="CampCharcoal">#222831</Color>
 <Color x:Key="RicksOrange">#E34E26</Color>
 
+<!-- Standard Colors for Compatibility -->
+<Color x:Key="Primary">#2C7DA0</Color>
+<Color x:Key="Secondary">#2A9D8F</Color>
+<Color x:Key="Tertiary">#E34E26</Color>
+
 
 <!-- Semantic Brushes -->
 <SolidColorBrush x:Key="CardBackground" Color="White"/>

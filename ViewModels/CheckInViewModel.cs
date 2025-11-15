@@ -3,15 +3,15 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RHF_Foundation.Services.Interfaces;
 using RHF_Foundation.Services.APIs;
-
+using RHF_Foundation.Models;
 
 namespace RHF_Foundation.ViewModels;
-
 
 public partial class CheckInViewModel : ObservableObject, IQueryAttributable
 {
     private readonly IAlertService _alerts;
     private readonly INavigationService _nav;
+    private readonly TrackingState _trackingState;
 
     private ICheckInAPIService _api;
 
@@ -27,18 +27,17 @@ public partial class CheckInViewModel : ObservableObject, IQueryAttributable
     [ObservableProperty]
     private int selectedChildren;
 
-
     [ObservableProperty]
     private string? placeId;
 
-
-    public CheckInViewModel(IAlertService alerts, INavigationService nav)
+    public CheckInViewModel(IAlertService alerts, INavigationService nav, TrackingState trackingState)
     {
         _alerts = alerts;
         _nav = nav;
+        _trackingState = trackingState;
 
         //yes yes... I know this is tightly couples and need to be refed to the constructor or DI service
-        _api = new CheckInAPIService();
+        _api = new AzureCheckInAPI();
 
         AdultOptions = new ObservableCollection<int>();
         ChildOptions = new ObservableCollection<int>();
@@ -52,7 +51,6 @@ public partial class CheckInViewModel : ObservableObject, IQueryAttributable
         SelectedChildren = 0;
     }
 
-
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         if (query.TryGetValue("placeId", out var value) && value is string s)
@@ -61,36 +59,43 @@ public partial class CheckInViewModel : ObservableObject, IQueryAttributable
 
 //Not used... legacy code for referance
     [RelayCommand]
-    private async Task CheckInAsync()
+    private async Task BackAsync()
     {
-        //await _alerts.ShowAsync("Checked In", $"Checked in at {PlaceId ?? "unknown"}.");
-        //await _nav.GoToAsync("checkin");
+        await _nav.PopToRootAsync();
     }
 
 
-[RelayCommand]
-private async Task ArriveAsync()
+    [RelayCommand]
+    private async Task ArriveAsync()
     {
         int total = SelectedAdults + SelectedChildren;
-        if(total == 0)
-            {
-                await _alerts.ShowAsync("OH NO!!!", $"You must select at least one person to check in");
-                return;
-            }
+        if (total == 0)
+        {
+            await _alerts.ShowAsync("OH NO!!!", $"You must select at least one person to check in");
+            return;
+        }
 
         var response = await _api.CheckInNumberOfVisitors(total);
-        
-        if (response == "error")
-            {
-                await _alerts.ShowAsync("OH NO!!!", $"Something went wrong");
 
-            }
+        if (response == "error")
+        {
+            await _alerts.ShowAsync("OH NO!!!", $"Something went wrong");
+
+        }
         else
         {
+            IncrementVisitCount();
             await _alerts.ShowAsync("Checked In", $"You are all set");
             await _nav.PopToRootAsync();
         }
-        
+
         //await _nav.GoToAsync("home", new Dictionary<string, object> { ["placeId"] = placeId }); //legacy code for referance
+    }
+    
+private void IncrementVisitCount()
+    {
+        int visits = Preferences.Get("NumberOfVisits", 0);
+        visits++;
+        Preferences.Set("NumberOfVisits", visits);
     }
 }

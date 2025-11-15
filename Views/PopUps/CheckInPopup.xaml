@@ -1,64 +1,70 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentView
-    x:Class="RHF_Foundation.Views.Popups.CheckInPopup"
+<toolkit:Popup
+    x:Class="RHF_Foundation.Views.PopUps.CheckInPopup"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    BackgroundColor="#EE3A24"
-    HorizontalOptions="Fill"
-    VerticalOptions="Fill"
-    Padding="-7">
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    CanBeDismissedByTappingOutsideOfPopup="True" BackgroundColor="Transparent">
 
-    <!-- Fullscreen overlay -->
-    <Grid
-        BackgroundColor="#66000000"
-        HorizontalOptions ="Fill"
-        VerticalOptions="Fill"
-        >
+    <!-- Popup Content -->
+    <Border
+        Padding="24"
+        BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}"
+        Stroke="{AppThemeBinding Light={StaticResource RicksOrange}, Dark={StaticResource RicksOrange}}"
+        StrokeThickness="6"
+        StrokeShape="RoundRectangle 24">
+        <VerticalStackLayout Spacing="16" WidthRequest="320" HorizontalOptions="Center" VerticalOptions="Center">
+            
+            <!-- Title -->
 
-        <Border
-            StrokeThickness="0"
-            BackgroundColor="White"
-            StrokeShape="RoundRectangle 16"
-            Padding="20"
-            WidthRequest="300"
-            VerticalOptions="Center"
-            HorizontalOptions="Center"
-            Shadow="{OnPlatform Default}">
+            <Label 
+                Text="{Binding TitleMessage}"
+                FontAttributes="Bold"
+                TextColor="{StaticResource RicksOrange}"
+                FontSize="38"
+                HorizontalOptions="Center" />
+            <Label 
+                Text="{Binding DisplayMessage}"
+                TextColor="{StaticResource RicksOrange}"
+                FontSize="18"
+                LineBreakMode="WordWrap" 
+                HorizontalOptions="Center" />
 
-            <VerticalStackLayout Padding="20" Spacing="30">
-                        <!-- Welcome Label -->
-                        <Label Text="Welcome"
-                            FontSize="36"
-                            FontAttributes="Bold"
-                            HorizontalOptions="Center"
-                            HorizontalTextAlignment="Center" 
-                            TextColor="#EE3A24"/>
+            <!-- Number of times 
+            <Label
+                Text="{Binding CheckInCount}"
+                FontAttributes="Bold"
+                FontSize="48"
+                HorizontalOptions="Center" />
+-->
+            <!-- Centered soldier image -->
+            <Image
+                Source="{Binding DisplayImage}"
+                HorizontalOptions="Center"
+                HeightRequest="150"
+                Aspect="AspectFit" />
 
-                        <!-- Adults Row -->
-                        <HorizontalStackLayout Spacing="10">
-                            <Label Text="Adults:" VerticalOptions="Center" FontSize="20"/>
-                            <Entry x:Name="AdultsEntry"
-                                WidthRequest="50"
-                                Keyboard="Numeric"
-                                HorizontalOptions="EndAndExpand" />
-                        </HorizontalStackLayout>
+            <!-- Spacer -->
+            <BoxView HeightRequest="8" />
 
-                        <!-- Kids Row -->
-                        <HorizontalStackLayout Spacing="10">
-                            <Label Text="Kids:" VerticalOptions="Center" FontSize="20"/>
-                            <Entry x:Name="KidsEntry"
-                                WidthRequest="50"
-                                Keyboard="Numeric"
-                                HorizontalOptions="EndAndExpand" />
-                        </HorizontalStackLayout>
+            <Label
+                Text="{Binding StaffMessage}"
+                TextColor="{StaticResource RicksOrange}"
+                FontAttributes="Bold"
+                FontSize="24"
+                LineBreakMode="WordWrap"  
+                HorizontalTextAlignment="Center"
+                HorizontalOptions="Center" />
 
-                        <!-- Check-In Button -->
-                        <Button Text="Check In"
-                                BackgroundColor="#EE3A24"
-                                FontSize="20"
-                                TextColor="White"
-                                FontAttributes="Bold"/>
-                    </VerticalStackLayout>
-        </Border>
-    </Grid>
-</ContentView>
+            <!-- Got It button -->
+            <Button
+                Text="Got It"
+                Command="{Binding GotItCommand}"
+                HorizontalOptions="Fill"
+                BackgroundColor="{StaticResource RicksOrange}"
+                TextColor="White"
+                CornerRadius="12"
+                HeightRequest="44" />
+        </VerticalStackLayout>
+    </Border>
+</toolkit:Popup>

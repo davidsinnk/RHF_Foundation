@@ -6,6 +6,16 @@
     xmlns:vm="clr-namespace:RHF_Foundation.ViewModels">
     <!--BackgroundColor="{StaticResource PageBackground}"> -->
 
+
+    <ContentPage.Padding>
+        <OnPlatform x:TypeArguments="Thickness">
+            <On Platform="Android" Value="0" />
+            <On Platform="iOS"     Value="0" />
+            <On Platform="MacCatalyst" Value="0" />
+            <On Platform="WinUI"   Value="0" />
+        </OnPlatform>
+    </ContentPage.Padding>
+
     <ContentPage.Resources>
         <!-- Card look & feel -->
         <Style x:Key="CardBorderStyle" TargetType="Border">
@@ -64,13 +74,16 @@
         </Style>
     </ContentPage.Resources>
 
+
+
+
     <ScrollView>
-        <VerticalStackLayout Spacing="16" Padding="16,24">
+        <VerticalStackLayout Spacing="8" Padding="16,0,16,16">
 
             <!--Top Menu-->
             <StackLayout x:Name="MainTopMenu">
-                <StackLayout x:Name="MainViewTopMenu" Orientation="Horizontal" VerticalOptions="Start"  Padding="0,0,0,-15">
-
+                <StackLayout x:Name="MainViewTopMenu" Orientation="Horizontal" VerticalOptions="Start"  Padding="0,0,0,0">
+                
                     <StackLayout HorizontalOptions="StartAndExpand" Padding="5,0" Orientation="Horizontal">
                         <ImageButton Source="check_in.png"
                                      WidthRequest="{OnPlatform iOS=30, Android=40}"
@@ -86,27 +99,22 @@
                     </StackLayout>
 
                     <StackLayout Orientation="Horizontal" HorizontalOptions="EndAndExpand" Padding="5,0" Margin="0,0,5,0" VerticalOptions="Center">
-                        <Label Text="User Name" FontSize="20" VerticalOptions="Center" HorizontalOptions="Center" TextColor="{StaticResource RicksOrange}" Padding="5,0">
-                            <Label.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding GoScheduleCommand}" />
-                            </Label.GestureRecognizers>
+                        <Label Text="{Binding NumberOfVisits, StringFormat='Visits: {0}'}" 
+                            FontSize="20" VerticalOptions="Center" HorizontalOptions="Center" 
+                            TextColor="{StaticResource RicksOrange}" Padding="5,0">
                         </Label>
-                        <Frame CornerRadius="15" HeightRequest="30" WidthRequest="30" HorizontalOptions="Center" Padding="0" HasShadow="True"
-                               IsClippedToBounds="True" BackgroundColor="{StaticResource RicksOrange}">
-                            <ImageButton Source="soldier.png"  HorizontalOptions="CenterAndExpand" VerticalOptions="CenterAndExpand" Command="{Binding GoScheduleCommand}" Aspect="Fill" />
-                        </Frame>
                     </StackLayout>
                 </StackLayout>
             </StackLayout>
 
             <Image Source="rhflogo.png" HeightRequest="130" BackgroundColor="{StaticResource RicksOrange}" HorizontalOptions="Fill" Aspect="AspectFill"  />
 
-            <Label Style="{StaticResource H2}" Text="Reminders"/>
+            <Label Style="{StaticResource H2}" Text="Reminders" TextColor="{StaticResource RicksOrange}"/>
             <!-- FIXED LINE -->
             <Label Text="No reminders for user" FontSize="14" TextColor="Gray" HorizontalOptions="Center" />
 
             <!-- Upcoming events -->
-            <Label Style="{StaticResource H2}" Text="Upcoming Events"/>
+            <Label Style="{StaticResource H2}" Text="Upcoming Events" TextColor="{StaticResource RicksOrange}"/>
 
             <Grid Padding="2">
                 <CollectionView ItemsSource="{Binding Events}" SelectionMode="None">

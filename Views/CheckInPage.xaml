@@ -46,5 +46,12 @@ Title="Check In">
         <Label Text="Checking in helps RHF track our facility use and improve services to our military and vetran community." 
                 Padding="0,30,0,10" HorizontalTextAlignment="Center"/>
 
+
+        <Button Text="Back to Main Page"
+                FontSize="Medium"
+                Command="{Binding BackCommand}"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"/>
+
 </VerticalStackLayout>
 </ContentPage>

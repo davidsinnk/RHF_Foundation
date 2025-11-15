@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="RHF_Foundation.Views.GetInvolved"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RHF_Foundation.ViewModels"
+    Title="Get Involved">
+
+    <ContentPage.BindingContext>
+        <vm:GetInvolvedViewModel />
+    </ContentPage.BindingContext>
+
+    <Grid RowDefinitions="Auto,Auto,*" Padding="0">
+
+        <!-- Header label -->
+        <Label
+            Text="GET INVOLVED"
+            FontAttributes="Bold"
+            FontSize="32"
+            HorizontalOptions="Center"
+            TextColor="{StaticResource RicksOrange}"
+            Margin="0,20,0,10"/>
+
+        <!-- Top bar "tabs" - MATCHES ACTIVITIES PAGE -->
+        <Grid Grid.Row="1"
+              
+              Padding="0,8"
+              ColumnSpacing="20"
+              HorizontalOptions="CenterAndExpand"
+              MaximumWidthRequest="560"
+              ColumnDefinitions="*,*">
+
+            <!-- Waiver tab button -->
+            <Border Grid.Column="0"
+                    x:Name="WaiverTab"
+                    HeightRequest="60"
+                    MinimumWidthRequest="160"
+                    Padding="14,8"
+                    HorizontalOptions="Fill"
+                    StrokeThickness="0">
+                <Border.StrokeShape>
+                    <Ellipse />
+                </Border.StrokeShape>
+
+                <VerticalStackLayout Spacing="4"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Center">
+                    <Image Source="waiver.png"
+                           WidthRequest="22"
+                           HeightRequest="22">
+                        <Image.Triggers>
+                            <!-- Selected: bigger icon -->
+                            <DataTrigger TargetType="Image"
+                                         Binding="{Binding IsWaiverVisible}"
+                                         Value="True">
+                                <Setter Property="WidthRequest" Value="28"/>
+                                <Setter Property="HeightRequest" Value="28"/>
+                            </DataTrigger>
+                            <!-- Unselected: smaller icon -->
+                            <DataTrigger TargetType="Image"
+                                         Binding="{Binding IsWaiverVisible}"
+                                         Value="False">
+                                <Setter Property="WidthRequest" Value="22"/>
+                                <Setter Property="HeightRequest" Value="22"/>
+                            </DataTrigger>
+                        </Image.Triggers>
+                    </Image>
+
+                    <Label Text="Waiver"
+                           FontAttributes="Bold"
+                           HorizontalTextAlignment="Center"
+                           FontSize="14">
+                        <Label.Triggers>
+                            <!-- Selected: bigger font, white text -->
+                            <DataTrigger TargetType="Label"
+                                         Binding="{Binding IsWaiverVisible}"
+                                         Value="True">
+                                <Setter Property="FontSize" Value="16"/>
+                                <Setter Property="TextColor" Value="White"/>
+                            </DataTrigger>
+                            <!-- Unselected: smaller font, orange text -->
+                            <DataTrigger TargetType="Label"
+                                         Binding="{Binding IsWaiverVisible}"
+                                         Value="False">
+                                <Setter Property="FontSize" Value="14"/>
+                                <Setter Property="TextColor" Value="{StaticResource RicksOrange}"/>
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                </VerticalStackLayout>
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding SelectWaiverCommand}"/>
+                </Border.GestureRecognizers>
+
+                <Border.Triggers>
+                    <!-- Selected: bigger orange pill -->
+                    <DataTrigger TargetType="Border"
+                                 Binding="{Binding IsWaiverVisible}"
+                                 Value="True">
+                        <Setter Property="BackgroundColor" Value="{StaticResource RicksOrange}"/>
+                        <Setter Property="StrokeThickness" Value="0"/>
+                        <Setter Property="HeightRequest" Value="72"/>
+                        <Setter Property="MinimumWidthRequest" Value="180"/>
+                        <Setter Property="Padding" Value="18,10"/>
+                        <Setter Property="Scale" Value="1.08"/>
+                    </DataTrigger>
+
+                    <!-- Unselected: smaller white pill with orange stroke -->
+                    <DataTrigger TargetType="Border"
+                                 Binding="{Binding IsWaiverVisible}"
+                                 Value="False">
+                        <Setter Property="BackgroundColor" Value="White"/>
+                        <Setter Property="Stroke" Value="{StaticResource RicksOrange}"/>
+                        <Setter Property="StrokeThickness" Value="2"/>
+                        <Setter Property="HeightRequest" Value="60"/>
+                        <Setter Property="MinimumWidthRequest" Value="160"/>
+                        <Setter Property="Padding" Value="14,8"/>
+                        <Setter Property="Scale" Value="1"/>
+                    </DataTrigger>
+                </Border.Triggers>
+            </Border>
+
+            <!-- Volunteer tab button -->
+            <Border Grid.Column="1"
+                    x:Name="VolunteerTab"
+                    HeightRequest="60"
+                    MinimumWidthRequest="160"
+                    Padding="14,8"
+                    HorizontalOptions="Fill"
+                    StrokeThickness="0">
+                <Border.StrokeShape>
+                    <Ellipse />
+                </Border.StrokeShape>
+
+                <VerticalStackLayout Spacing="4"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Center">
+                    <Image Source="volunteer.png"
+                           WidthRequest="22"
+                           HeightRequest="22">
+                        <Image.Triggers>
+                            <!-- Selected: bigger icon -->
+                            <DataTrigger TargetType="Image"
+                                         Binding="{Binding IsVolunteerVisible}"
+                                         Value="True">
+                                <Setter Property="WidthRequest" Value="28"/>
+                                <Setter Property="HeightRequest" Value="28"/>
+                            </DataTrigger>
+                            <!-- Unselected: smaller icon -->
+                            <DataTrigger TargetType="Image"
+                                         Binding="{Binding IsVolunteerVisible}"
+                                         Value="False">
+                                <Setter Property="WidthRequest" Value="22"/>
+                                <Setter Property="HeightRequest" Value="22"/>
+                            </DataTrigger>
+                        </Image.Triggers>
+                    </Image>
+
+                    <Label Text="Volunteer"
+                           FontAttributes="Bold"
+                           HorizontalTextAlignment="Center"
+                           FontSize="14">
+                        <Label.Triggers>
+                            <!-- Selected: bigger font, white text -->
+                            <DataTrigger TargetType="Label"
+                                         Binding="{Binding IsVolunteerVisible}"
+                                         Value="True">
+                                <Setter Property="FontSize" Value="16"/>
+                                <Setter Property="TextColor" Value="White"/>
+                            </DataTrigger>
+                            <!-- Unselected: smaller font, orange text -->
+                            <DataTrigger TargetType="Label"
+                                         Binding="{Binding IsVolunteerVisible}"
+                                         Value="False">
+                                <Setter Property="FontSize" Value="14"/>
+                                <Setter Property="TextColor" Value="{StaticResource RicksOrange}"/>
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                </VerticalStackLayout>
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding SelectVolunteerCommand}"/>
+                </Border.GestureRecognizers>
+
+                <Border.Triggers>
+                    <!-- Selected: bigger orange pill -->
+                    <DataTrigger TargetType="Border"
+                                 Binding="{Binding IsVolunteerVisible}"
+                                 Value="True">
+                        <Setter Property="BackgroundColor" Value="{StaticResource RicksOrange}"/>
+                        <Setter Property="StrokeThickness" Value="0"/>
+                        <Setter Property="HeightRequest" Value="72"/>
+                        <Setter Property="MinimumWidthRequest" Value="180"/>
+                        <Setter Property="Padding" Value="18,10"/>
+                        <Setter Property="Scale" Value="1.08"/>
+                    </DataTrigger>
+
+                    <!-- Unselected: smaller white pill with orange stroke -->
+                    <DataTrigger TargetType="Border"
+                                 Binding="{Binding IsVolunteerVisible}"
+                                 Value="False">
+                        <Setter Property="BackgroundColor" Value="White"/>
+                        <Setter Property="Stroke" Value="{StaticResource RicksOrange}"/>
+                        <Setter Property="StrokeThickness" Value="2"/>
+                        <Setter Property="HeightRequest" Value="60"/>
+                        <Setter Property="MinimumWidthRequest" Value="160"/>
+                        <Setter Property="Padding" Value="14,8"/>
+                        <Setter Property="Scale" Value="1"/>
+                    </DataTrigger>
+                </Border.Triggers>
+            </Border>
+        </Grid>
+
+        <!-- Body -->
+        <ScrollView Grid.Row="2" Padding="24">
+            <Grid>
+                <!-- Waiver section -->
+                <ContentView IsVisible="{Binding IsWaiverVisible}">
+                    <VerticalStackLayout Spacing="20"
+                                         HorizontalOptions="Center"
+                                         VerticalOptions="Center">
+                        <Image Source="waiver.png"
+                               WidthRequest="100"
+                               HeightRequest="100"
+                               HorizontalOptions="Center"/>
+                        <Button
+                            Text="Open Waiver Form"
+                            FontSize="18"
+                            HorizontalOptions="Center"
+                            Command="{Binding OpenWaiverCommand}"/>
+                    </VerticalStackLayout>
+                </ContentView>
+
+                <!-- Volunteer section -->
+                <ContentView IsVisible="{Binding IsVolunteerVisible}">
+                    <VerticalStackLayout Spacing="20"
+                                         HorizontalOptions="Center"
+                                         VerticalOptions="Center">
+                        <Image Source="volunteer.png"
+                               WidthRequest="100"
+                               HeightRequest="100"
+                               HorizontalOptions="Center"/>
+                        <Button
+                            Text="Open Volunteer Form"
+                            FontSize="18"
+                            HorizontalOptions="Center"
+                            Command="{Binding OpenVolunteerCommand}"/>
+                    </VerticalStackLayout>
+                </ContentView>
+            </Grid>
+        </ScrollView>
+    </Grid>
+</ContentPage>

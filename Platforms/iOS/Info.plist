@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
+<plist version="1.1">
 <dict>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
@@ -30,14 +30,21 @@
 	<string>Assets.xcassets/appicon.appiconset</string>
 
 	<key>NSLocationWhenInUseUsageDescription</key>
-		<string>This app uses your location to notify you when you arrive.</string>
-		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-		<string>Needed to monitor arrival even when the app is not active.</string>
+	<string>RHF Foundation needs location access to detect when you arrive at camp and provide location-based features. This helps us provide a better camp experience by automatically checking you in when you arrive.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>RHF Foundation needs location access even when the app is not in use to detect when you arrive at camp and send helpful notifications. This allows the app to automatically check you in and provide location-based features even when your phone is locked or you're using other apps.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>RHF Foundation needs continuous location access to monitor your proximity to camp and provide background notifications. This helps ensure you never miss check-in opportunities and stay connected with camp activities.</string>
+
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>
 	</array>
 
 
+
+
 </dict>
 </plist>
+
+
